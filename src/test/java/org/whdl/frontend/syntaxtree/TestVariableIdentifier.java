@@ -2,6 +2,7 @@ package org.whdl.frontend.syntaxtree;
 
 import static org.junit.Assert.*;
 import org.junit.Test;
+import java.lang.UnsupportedOperationException;
 import java.util.ArrayList;
 
 public class TestVariableIdentifier {

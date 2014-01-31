@@ -26,17 +26,17 @@ public class BitValue extends Value {
   public boolean toBoolean() {
     return value;
   }
-  
+
   public void verify() {}
-  
+
   public boolean isCompiletimeEvaluable() {
     return true;
   }
-  
+
   public boolean isSynthesizable() {
     return true;
   }
-  
+
   @Override
   public String toString() {
     return getType().toString() + " " + value;
