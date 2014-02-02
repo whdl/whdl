@@ -6,11 +6,11 @@ import java.util.Set;
 
 public class EnumTypeValue extends TypeValue {
 	
-	private TypeValue typeOfEnums;
+	private TypeValue enumsType;
 	private Map<String, Value> enums;
 	
 	public EnumTypeValue(TypeValue typeOfEnums, Map<String, Value> enums) throws TypeMismatchException {
-		this.typeOfEnums = typeOfEnums;
+		this.enumsType = typeOfEnums;
 		this.enums = new HashMap<String, Value>();
 		
 		for(Map.Entry<String, Value> e : enums.entrySet()) {
@@ -27,7 +27,7 @@ public class EnumTypeValue extends TypeValue {
 	}
 	
 	public TypeValue getTypeOfEnums() {
-		return typeOfEnums;
+		return enumsType;
 	}
 	
 	public Set<String> names() {
@@ -36,10 +36,10 @@ public class EnumTypeValue extends TypeValue {
 	
 	@Override
 	public void verify() throws Exception{
-		typeOfEnums.verify();
+		enumsType.verify();
 		for(Value v : enums.values()) {
-			if(!typeOfEnums.equals(v.getType())) {
-				throw new TypeMismatchException(typeOfEnums, v.getType());
+			if(!enumsType.equals(v.getType())) {
+				throw new TypeMismatchException(enumsType, v.getType());
 			}
 			v.verify();
 		}
