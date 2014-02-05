@@ -3,36 +3,39 @@ package org.whdl.frontend.syntaxtree;
 import static org.junit.Assert.*;
 
 import java.util.HashMap;
+import java.util.Set;
+
+import org.junit.Before;
 import org.junit.Test;
 
 public class TestEnumTypeValue {
+	
+	private HashMap<String, Value> enumMap = new HashMap<String, Value>();
+	
+	@Before
+	public void setup() {
+		enumMap.clear();
+		enumMap.put("foo", BitValue.getInstance(true));
+		enumMap.put("bar", BitValue.getInstance(false));
+	}
 
 	@Test(expected=TypeMismatchException.class)
 	public void testIncorrectType() throws Exception {
-		HashMap<String, Value> m = new HashMap<String, Value>();
-		m.put("foo", BitValue.getInstance(true));
-		new EnumTypeValue(TypeTypeValue.getInstance(), m).verify();;
+		new EnumTypeValue(TypeTypeValue.getInstance(), enumMap).verify();;
 	}
 	
 	@Test(expected=NoSuchEnumIdentifierException.class)
 	public void testIncorrectIdentifier() throws Exception {
-		HashMap<String, Value> m = new HashMap<String, Value>();
-		m.put("foo", BitValue.getInstance(true));
-		EnumTypeValue enumType = new EnumTypeValue(BitTypeValue.getInstance(), m);
+		EnumTypeValue enumType = new EnumTypeValue(BitTypeValue.getInstance(), enumMap);
 		enumType.verify();
-		EnumValue enumValue = new EnumValue(enumType, "bar");
+		EnumValue enumValue = new EnumValue(enumType, "boop");
 	}
 	
 	@Test
-	public void testEnumEquality() throws TypeMismatchException, NoSuchEnumIdentifierException {
-		HashMap<String, Value> m = new HashMap<String, Value>();
-		m.put("foo", BitValue.getInstance(true));
-		EnumTypeValue type = new EnumTypeValue(BitTypeValue.getInstance(), m);
-		EnumValue foo1 = new EnumValue(type, "foo");
-		EnumValue foo2 = new EnumValue(type, "foo");
-		
-		assertEquals(foo1, foo2);
-		assertEquals(foo1, BitValue.getInstance(true));
-		assertNotEquals(foo1, BitValue.getInstance(false));
+	public void testGetters() throws TypeMismatchException {
+		EnumTypeValue enumType = new EnumTypeValue(BitTypeValue.getInstance(), enumMap);
+		Set<String> enumNames = enumType.names();
+		assertTrue(enumNames.containsAll(enumMap.keySet()));
+		assertEquals(BitTypeValue.getInstance(), enumType.getTypeOfEnums());
 	}
 }
