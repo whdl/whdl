@@ -11,10 +11,6 @@ public class AttributeDefinitionException extends Exception {
     this.errorMsg = "attribute with name '" + name + "' defined twice in " + fields.toString();
   }
 
-  public AttributeDefinitionException(Collection<TupleAttributeType> tupleType, int pos) {
-    this.errorMsg = "missing attribute in position " + pos + " of " + tupleType.toString();
-  }
-
   public String toString() {
     return this.errorMsg;
   }
