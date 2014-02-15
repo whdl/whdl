@@ -9,13 +9,9 @@ public class EnumTypeValue extends TypeValue {
 	private TypeValue enumsType;
 	private Map<String, Value> enums;
 	
-	public EnumTypeValue(TypeValue typeOfEnums, Map<String, Value> enums) throws TypeMismatchException {
-		this.enumsType = typeOfEnums;
-		this.enums = new HashMap<String, Value>();
-		
-		for(Map.Entry<String, Value> e : enums.entrySet()) {
-			this.enums.put(e.getKey(), e.getValue());
-		}
+	public EnumTypeValue(TypeValue enumsType, Map<String, Value> enums) throws TypeMismatchException {
+		this.enumsType = enumsType;
+		this.enums = new HashMap<String, Value>(enums);
 	}
 	
 	public boolean contains(String key) {
@@ -26,11 +22,11 @@ public class EnumTypeValue extends TypeValue {
 		return enums.get(key);
 	}
 	
-	public TypeValue getTypeOfEnums() {
+	public TypeValue getEnumsType() {
 		return enumsType;
 	}
 	
-	public Set<String> names() {
+	public Set<String> getIdentifiers() {
 		return enums.keySet();
 	}
 	

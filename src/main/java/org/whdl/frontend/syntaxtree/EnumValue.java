@@ -2,53 +2,56 @@ package org.whdl.frontend.syntaxtree;
 
 public class EnumValue extends Value {
 
-	private EnumTypeValue enumType;
-	private String enumIdentifier;
-	private Value enumValue;
+	private EnumTypeValue type;
+	private String identifier;
+	private Value value;
 	
-	public EnumValue(EnumTypeValue enumType, String enumIdentifier) throws NoSuchEnumIdentifierException {
-		this.enumType = enumType;
-		this.enumIdentifier = enumIdentifier;
+	public EnumValue(EnumTypeValue type, String identifier) throws EnumIdentifierNotDefined {
+		this.type = type;
+		this.identifier = identifier;
 		
-		if(!enumType.contains(enumIdentifier)) {
-			throw new NoSuchEnumIdentifierException(this.enumType, this.enumIdentifier);
+		if(!type.contains(identifier)) {
+			throw new EnumIdentifierNotDefined(this.type, this.identifier);
 		}
 		
-		enumValue = enumType.get(enumIdentifier);
+		value = type.get(identifier);
 	}
 	
 	public String getIdentifier() {
-		return enumIdentifier;
+		return identifier;
 	}
 	
 	public Value getValue() {
-		return enumValue;
+		return value;
 	}
 	
 	@Override
 	public TypeValue getType() {
-		return enumType;
+		return type;
 	}
 
 	@Override
 	public void verify() throws Exception {
-		enumValue.verify();
+		value.verify();
 	}
 
 	@Override
 	public boolean isCompiletimeEvaluable() {
-		return enumValue.isCompiletimeEvaluable();
+		return value.isCompiletimeEvaluable();
 	}
 
 	@Override
 	public boolean isSynthesizable() {
-		return enumValue.isSynthesizable();
+		return value.isSynthesizable();
 	}
 	
 	@Override
 	public boolean equals(Object obj) {
 		if(obj instanceof EnumValue) {
-			return enumIdentifier.equals(((EnumValue) obj).enumIdentifier);
+			EnumValue otherEnum = (EnumValue) obj;
+			if(type.equals(otherEnum.type) && identifier.equals(otherEnum.identifier)) {
+				return true;
+			}
 		}
 		
 		return getValue().equals(obj);

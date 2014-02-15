@@ -24,7 +24,7 @@ public class TestEnumTypeValue {
 		new EnumTypeValue(TypeTypeValue.getInstance(), enumMap).verify();;
 	}
 	
-	@Test(expected=NoSuchEnumIdentifierException.class)
+	@Test(expected=EnumIdentifierNotDefined.class)
 	public void testIncorrectIdentifier() throws Exception {
 		EnumTypeValue enumType = new EnumTypeValue(BitTypeValue.getInstance(), enumMap);
 		enumType.verify();
@@ -34,8 +34,8 @@ public class TestEnumTypeValue {
 	@Test
 	public void testGetters() throws TypeMismatchException {
 		EnumTypeValue enumType = new EnumTypeValue(BitTypeValue.getInstance(), enumMap);
-		Set<String> enumNames = enumType.names();
+		Set<String> enumNames = enumType.getIdentifiers();
 		assertTrue(enumNames.containsAll(enumMap.keySet()));
-		assertEquals(BitTypeValue.getInstance(), enumType.getTypeOfEnums());
+		assertEquals(BitTypeValue.getInstance(), enumType.getEnumsType());
 	}
 }

@@ -20,7 +20,7 @@ public class TestEnumValue {
 	}
 	
 	@Test
-	public void testGetters() throws TypeMismatchException, NoSuchEnumIdentifierException {
+	public void testGetters() throws TypeMismatchException, EnumIdentifierNotDefined {
 		EnumTypeValue type = new EnumTypeValue(BitTypeValue.getInstance(), enumMap);
 		EnumValue foo1 = new EnumValue(type, "foo");
 		assertEquals("foo", foo1.getIdentifier());
@@ -37,7 +37,7 @@ public class TestEnumValue {
 	}
 	
 	@Test
-	public void testEnumEquality() throws TypeMismatchException, NoSuchEnumIdentifierException {
+	public void testEnumEquality() throws TypeMismatchException, EnumIdentifierNotDefined {
 		EnumTypeValue type = new EnumTypeValue(BitTypeValue.getInstance(), enumMap);
 		EnumValue foo1 = new EnumValue(type, "foo");
 		EnumValue foo2 = new EnumValue(type, "foo");
