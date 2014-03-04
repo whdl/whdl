@@ -9,6 +9,12 @@ public class BitTypeValue extends TypeValue {
   }
 
   private BitTypeValue() {}
- 
+
+  @Override
   public void verify() {}
+
+  @Override
+  public String toString() {
+    return "whdl.Bit";
+  }
 }

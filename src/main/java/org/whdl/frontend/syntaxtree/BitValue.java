@@ -13,7 +13,7 @@ public class BitValue extends Value {
     }
   }
 
-  private boolean value;
+  private final boolean value;
 
   private BitValue(boolean value) {
     this.value = value;
@@ -26,14 +26,19 @@ public class BitValue extends Value {
   public boolean toBoolean() {
     return value;
   }
-  
+
   public void verify() {}
-  
+
   public boolean isCompiletimeEvaluable() {
     return true;
   }
-  
+
   public boolean isSynthesizable() {
     return true;
+  }
+
+  @Override
+  public String toString() {
+    return getType().toString() + " " + value;
   }
 }
