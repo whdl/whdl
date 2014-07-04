@@ -28,8 +28,16 @@ public class Schematic {
   // Maps containing instantiated objects for this schematic; they are all
   // indexed by the (string) instance-name of the object.
   private final Map<String, Node> nodes;
+  public Map<String, Node> getNodes(){
+    return java.util.Collections.unmodifiableMap(nodes);
+  }
+  
   private final Map<Node, String> reverseNodeMap;
   private final Map<String, Connection> connections;
+  public Map<String, Connection> getConnections(){
+    return java.util.Collections.unmodifiableMap(connections);
+  }
+  
   private final Map<String, Constraint> constraints;
 
   public Schematic(String name) {
