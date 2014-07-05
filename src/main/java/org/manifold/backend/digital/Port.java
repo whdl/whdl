@@ -21,7 +21,6 @@ public class Port {
   }
   public void setNet(Net net) throws NetlistConstructionException{
     if(attachedNet != null){
-      // FIXME subclass this
       throw new NetlistConstructionException("attempted to set net twice on port '" + name + "'");
     }
     attachedNet = net;

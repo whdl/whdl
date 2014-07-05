@@ -44,11 +44,17 @@ public class TestPrimitive {
   }
   
   @Test
-  public void testGetPort(){
+  public void testGetPort() throws UndeclaredIdentifierException{
     Primitive prim = new MockPrimitive("test");
     Port port = new Port("a", PortDirection.INPUT);
     prim.addPort(port);
     assertEquals(port, prim.getPort("a"));
+  }
+  
+  @Test(expected=UndeclaredIdentifierException.class)
+  public void testGetPort_nonexistent_throwsException() throws UndeclaredIdentifierException{
+    Primitive prim = new MockPrimitive("test");
+    Port bogus = prim.getPort("bogus");
   }
 
 }

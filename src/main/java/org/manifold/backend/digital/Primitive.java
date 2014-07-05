@@ -16,9 +16,12 @@ public abstract class Primitive {
     ports.put(p.getName(), p);
   }
   
-  public Port getPort(String portName){
-    // FIXME what if it doesn't exist?
-    return ports.get(portName);
+  public Port getPort(String portName) throws UndeclaredIdentifierException{
+    if(ports.containsKey(portName)){
+      return ports.get(portName);
+    }else{
+      throw new UndeclaredIdentifierException(portName);
+    }
   }
   
   public Collection<Port> getPorts(){

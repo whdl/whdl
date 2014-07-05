@@ -22,7 +22,7 @@ public class Netlist {
   
   @FunctionalInterface
   interface BiFunctionConstructor<T, U, R> {
-    R apply(T t, U u) throws NetlistConstructionException;
+    R apply(T t, U u) throws PrimitiveConstructionException;
   }
   
   /**
@@ -58,7 +58,6 @@ public class Netlist {
         return new OutputPinPrimitive(name, node);
       });
     }catch(UndeclaredIdentifierException uie){
-      // FIXME subclass this and make a more specific exception
       throw new NetlistConstructionException(uie.getMessage() + " while searching for node types");
     }
     
@@ -66,7 +65,6 @@ public class Netlist {
     try{
       wireConnectionType = schematic.getConnectionType("digitalWire");
     }catch(UndeclaredIdentifierException uie){
-      // FIXME subclass this
       throw new NetlistConstructionException(uie.getMessage() + " while searching for connection types");
     }
     
@@ -75,7 +73,6 @@ public class Netlist {
       inPortType = schematic.getPortType("digitalIn");
       outPortType = schematic.getPortType("digitalOut");
     }catch(UndeclaredIdentifierException uie){
-      // FIXME subclass this
       throw new NetlistConstructionException(uie.getMessage() + " while searching for port types");
     }
     
@@ -99,18 +96,15 @@ public class Netlist {
       Connection connection = e.getValue();
       // check type
       if(!connection.getType().equals(wireConnectionType)){
-        // FIXME subclass this
         throw new NetlistConstructionException("connection '" + connectionName + "' has unknown type");
       }
       
       org.manifold.intermediate.Port schematicPortFrom = connection.getFrom();
       if(! (schematicPortFrom.getType().equals(inPortType) || schematicPortFrom.getType().equals(outPortType))){
-        // FIXME subclass this
         throw new NetlistConstructionException("'from' port on connection '" + connectionName + "' has unknown type");
       }
       org.manifold.intermediate.Port schematicPortTo = connection.getTo();
       if(! (schematicPortTo.getType().equals(inPortType) || schematicPortTo.getType().equals(outPortType))){
-        // FIXME subclass this
         throw new NetlistConstructionException("'to' port on connection '" + connectionName + "' has unknown type");
       }
       

@@ -28,7 +28,7 @@ public class RegisterPrimitive extends Primitive {
     return clockActiveHigh;
   }
   
-  public RegisterPrimitive(String name, Node node) throws NetlistConstructionException{
+  public RegisterPrimitive(String name, Node node) throws PrimitiveConstructionException{
     super(name);
     
     try{
@@ -37,8 +37,7 @@ public class RegisterPrimitive extends Primitive {
       resetAsynchronous = ((BooleanValue)node.getAttribute("resetAsynchronous")).getValue();
       clockActiveHigh = ((BooleanValue)node.getAttribute("clockActiveHigh")).getValue();
     }catch(UndeclaredAttributeException uae){
-      // FIXME subclass this
-      throw new NetlistConstructionException("error while setting attributes of register '" + getName() + "'");
+      throw new PrimitiveConstructionException("error while setting attributes of register '" + getName() + "'");
     }
     
     addPort(port_in);
