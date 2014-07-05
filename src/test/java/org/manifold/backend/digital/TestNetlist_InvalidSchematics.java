@@ -7,6 +7,8 @@ import java.util.Map;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.manifold.intermediate.Connection;
+import org.manifold.intermediate.ConnectionType;
 import org.manifold.intermediate.MultipleDefinitionException;
 import org.manifold.intermediate.Node;
 import org.manifold.intermediate.NodeType;
@@ -34,7 +36,7 @@ public class TestNetlist_InvalidSchematics {
       Netlist netlist = new Netlist(s);
       fail("schematic constructed with missing port types");
     }catch(NetlistConstructionException ex){
-      assertTrue(ex.getMessage().contains("port types"));
+      assertTrue("unexpected message: " + ex.getMessage(), ex.getMessage().contains("port types"));
     }
   }
   
@@ -45,7 +47,7 @@ public class TestNetlist_InvalidSchematics {
       Netlist netlist = new Netlist(s);
       fail("schematic constructed with missing node types");
     }catch(NetlistConstructionException ex){
-      assertTrue(ex.getMessage().contains("node types"));
+      assertTrue("unexpected message: " + ex.getMessage(), ex.getMessage().contains("node types"));
     }
   }
 
@@ -56,7 +58,7 @@ public class TestNetlist_InvalidSchematics {
       Netlist netlist = new Netlist(s);
       fail("schematic constructed with missing connection types");
     }catch(NetlistConstructionException ex){
-      assertTrue(ex.getMessage().contains("connection types"));
+      assertTrue("unexpected message: " + ex.getMessage(), ex.getMessage().contains("connection types"));
     }
   }
   
@@ -78,8 +80,33 @@ public class TestNetlist_InvalidSchematics {
       Netlist netlist = new Netlist(s);
       fail("schematic constructed with unknown node type");
     }catch(NetlistConstructionException ex){
-      assertTrue(ex.getMessage().contains("node"));
-      assertTrue(ex.getMessage().contains("unknown type"));
+      assertTrue("unexpected message: " + ex.getMessage(), ex.getMessage().contains("node"));
+      assertTrue("unexpected message: " + ex.getMessage(), ex.getMessage().contains("unknown type"));
+    }
+  }
+  
+  @Test
+  public void testInvalidSchematic_UnknownConnectionType() throws SchematicException {
+    Schematic s = TestNetlist.instantiateSchematic("bogus");
+    // now we add an extra connection type
+    Map<String, Type> noTypeAttributes = new HashMap<String,Type>();
+    ConnectionType bogusConnectionType = new ConnectionType(noTypeAttributes);
+    s.addConnectionType("bogus_t", bogusConnectionType);
+    // add two simple nodes and connect them with our extra type
+    Node in = TestNetlist.instantiateInputPin();
+    Node out = TestNetlist.instantiateOutputPin();
+    Map<String, Value> noAttributes = new HashMap<String,Value>();
+    Connection bogus_in_to_out = new Connection(bogusConnectionType, in.getPort("out"), out.getPort("in"), noAttributes);
+    s.addNode("in", in);
+    s.addNode("out", out);
+    s.addConnection("in_to_out", bogus_in_to_out);
+    
+    try{
+      Netlist netlist = new Netlist(s);
+      fail("schematic constructed with unknown connection type");
+    }catch(NetlistConstructionException ex){
+      assertTrue("unexpected message: " + ex.getMessage(), ex.getMessage().contains("connection"));
+      assertTrue("unexpected message: " + ex.getMessage(), ex.getMessage().contains("unknown type"));
     }
   }
   
