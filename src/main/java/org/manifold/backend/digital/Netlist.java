@@ -48,6 +48,7 @@ public class Netlist {
   
   public Netlist(Schematic schematic) throws NetlistConstructionException{
     // start by examining the Schematic's definitions for certain node types we are interested in seeing
+    
     try{
       primitiveConstructor.put(schematic.getNodeType("register"), (name, node) -> {
         return new RegisterPrimitive(name, node);
@@ -168,3 +169,4 @@ public class Netlist {
   }
   
 }
+// CHECKSTYLE:ON

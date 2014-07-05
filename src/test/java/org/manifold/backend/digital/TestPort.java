@@ -36,12 +36,13 @@ public class TestPort {
   }
   
   @Test(expected = NetlistConstructionException.class)
-  public void testSetNet_AlreadySet_ThrowsException() throws NetlistConstructionException{
+  public void testSetNet_AlreadySet_ThrowsException() 
+      throws NetlistConstructionException{
     Port port = new Port("test", PortDirection.INPUT);
     Net n1 = new Net("n1_test");
-    try{
+    try {
       port.setNet(n1);
-    }catch(NetlistConstructionException sce){
+    } catch (NetlistConstructionException sce) {
       fail("exception thrown too early: " + sce.getMessage());
     }
     Net n2 = new Net("n2_test");

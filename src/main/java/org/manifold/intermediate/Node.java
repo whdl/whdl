@@ -24,9 +24,9 @@ public class Node extends Value {
   }
 
   public String getPortName(Port port) throws NoSuchElementException {
-    if(reversePorts.containsKey(port)){
+    if (reversePorts.containsKey(port)){
       return reversePorts.get(port);
-    }else{
+    } else {
       throw new NoSuchElementException();
     }
   }

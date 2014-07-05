@@ -51,8 +51,9 @@ public class TestPrimitive {
     assertEquals(port, prim.getPort("a"));
   }
   
-  @Test(expected=UndeclaredIdentifierException.class)
-  public void testGetPort_nonexistent_throwsException() throws UndeclaredIdentifierException{
+  @Test(expected = UndeclaredIdentifierException.class)
+  public void testGetPort_nonexistent_throwsException() 
+      throws UndeclaredIdentifierException{
     Primitive prim = new MockPrimitive("test");
     Port bogus = prim.getPort("bogus");
   }

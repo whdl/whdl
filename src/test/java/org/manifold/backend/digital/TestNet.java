@@ -31,7 +31,8 @@ public class TestNet {
   }
   
   @Test
-  public void testGetPorts_ContainsAddedPort() throws NetlistConstructionException{
+  public void testGetPorts_ContainsAddedPort() 
+      throws NetlistConstructionException {
     Net n = new Net("n_test");
     Port p = new Port("test", PortDirection.INPUT);
     n.addPort(p);

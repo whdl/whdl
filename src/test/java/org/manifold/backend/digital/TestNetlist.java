@@ -36,17 +36,23 @@ public class TestNetlist {
   private static PortType digitalInPortType;
   private static PortType digitalOutPortType;
   
-  private static final Map<String, Type> noTypeAttributes = new HashMap<String,Type>();
-  private static final Map<String, Value> noAttributes = new HashMap<>();
+  private static final Map<String, Type> noTypeAttributes 
+    = new HashMap<String, Type>();
+  private static final Map<String, Value> noAttributes 
+    = new HashMap<>();
   
-  private static Map<String, Type> registerTypeAttributes = new HashMap<String, Type>();
-  private static Map<String, PortType> registerTypePorts = new HashMap<String, PortType>();
+  private static Map<String, Type> registerTypeAttributes 
+    = new HashMap<String, Type>();
+  private static Map<String, PortType> registerTypePorts 
+    = new HashMap<String, PortType>();
   private static NodeType registerType;
   
-  private static Map<String, PortType> inputPinTypePorts = new HashMap<String, PortType>();
+  private static Map<String, PortType> inputPinTypePorts 
+    = new HashMap<String, PortType>();
   private static NodeType inputPinType;
   
-  private static Map<String, PortType> outputPinTypePorts = new HashMap<String, PortType>();
+  private static Map<String, PortType> outputPinTypePorts 
+    = new HashMap<String, PortType>();
   private static NodeType outputPinType;
   
   private static ConnectionType digitalWireType;
@@ -78,25 +84,28 @@ public class TestNetlist {
   }
   
   /**
-   * Instantiate a Schematic, but with varying degrees of "completeness" in terms of
-   * what object types are included. If types are missing, it will not be possible
-   * to construct a Netlist.
+   * Instantiate a Schematic, but with varying degrees of "completeness" 
+   * in terms of what object types are included. If types are missing, 
+   * it will not be possible to construct a Netlist.
    * @throws MultipleDefinitionException 
    */
-  public static Schematic instantiateSchematic(String name, boolean includePortTypes, boolean includeNodeTypes, boolean includeConnectionTypes) throws MultipleDefinitionException{
+  public static Schematic instantiateSchematic(String name, 
+      boolean includePortTypes, boolean includeNodeTypes, 
+      boolean includeConnectionTypes) 
+      throws MultipleDefinitionException {
     Schematic s = new Schematic(name);
-    if(includePortTypes){
+    if (includePortTypes) {
       s.addPortType("digitalIn", digitalInPortType);
       s.addPortType("digitalOut", digitalOutPortType);
     }
     
-    if(includeNodeTypes){
+    if (includeNodeTypes) {
       s.addNodeType("register", registerType);
       s.addNodeType("inputPin", inputPinType);
       s.addNodeType("outputPin", outputPinType);
     }
     
-    if(includeConnectionTypes){
+    if (includeConnectionTypes) {
       s.addConnectionType("digitalWire", digitalWireType);
     }
     
@@ -106,16 +115,24 @@ public class TestNetlist {
   /**
    * Instantiate a Schematic and include all object types.
    */
-  public static Schematic instantiateSchematic(String name) throws MultipleDefinitionException{
+  public static Schematic instantiateSchematic(String name) 
+      throws MultipleDefinitionException {
     return instantiateSchematic(name, true, true, true);
   }
   
-  public static Node instantiateRegister(boolean initialValue, boolean resetActiveHigh, boolean resetAsynchronous, boolean clockActiveHigh) throws SchematicException{
+  public static Node instantiateRegister(boolean initialValue, 
+      boolean resetActiveHigh, boolean resetAsynchronous, 
+      boolean clockActiveHigh) 
+      throws SchematicException {
     Map<String, Value> registerAttrs = new HashMap<>();
-    registerAttrs.put("initialValue", new BooleanValue(BooleanType.getInstance(), initialValue));
-    registerAttrs.put("resetActiveHigh", new BooleanValue(BooleanType.getInstance(), resetActiveHigh));
-    registerAttrs.put("resetAsynchronous", new BooleanValue(BooleanType.getInstance(), resetAsynchronous));
-    registerAttrs.put("clockActiveHigh", new BooleanValue(BooleanType.getInstance(), clockActiveHigh));
+    registerAttrs.put("initialValue", 
+        new BooleanValue(BooleanType.getInstance(), initialValue));
+    registerAttrs.put("resetActiveHigh", 
+        new BooleanValue(BooleanType.getInstance(), resetActiveHigh));
+    registerAttrs.put("resetAsynchronous", 
+        new BooleanValue(BooleanType.getInstance(), resetAsynchronous));
+    registerAttrs.put("clockActiveHigh", 
+        new BooleanValue(BooleanType.getInstance(), clockActiveHigh));
     Map<String, Map<String, Value>> registerPortAttrs = new HashMap<>();
     registerPortAttrs.put("in", noAttributes);
     registerPortAttrs.put("out", noAttributes);
@@ -139,7 +156,9 @@ public class TestNetlist {
     return outputPin;
   }
   
-  public static Connection instantiateWire(org.manifold.intermediate.Port from, org.manifold.intermediate.Port to) throws UndeclaredAttributeException, InvalidAttributeException{
+  public static Connection instantiateWire(
+      org.manifold.intermediate.Port from, org.manifold.intermediate.Port to) 
+      throws UndeclaredAttributeException, InvalidAttributeException{
     Connection wire = new Connection(digitalWireType, from, to, noAttributes);
     return wire;
   }
@@ -147,7 +166,8 @@ public class TestNetlist {
   // parameterized test cases
   
   @Parameters
-  public static Collection<Object[]> testSchematics() throws SchematicException {
+  public static Collection<Object[]> testSchematics() 
+      throws SchematicException {
     List<Object[]> data = new LinkedList<Object[]>();
     
     // BEGIN CASE 0
@@ -156,7 +176,8 @@ public class TestNetlist {
       Schematic case0 = instantiateSchematic("case0");
       Node in = instantiateInputPin();
       Node out = instantiateOutputPin();
-      Connection in_to_out = instantiateWire(in.getPort("out"), out.getPort("in"));
+      Connection in_to_out = instantiateWire(
+          in.getPort("out"), out.getPort("in"));
       case0.addNode("in", in);
       case0.addNode("out", out);
       case0.addConnection("in_to_out", in_to_out);
@@ -189,19 +210,20 @@ public class TestNetlist {
   @Test
   public void testPrimitiveTranslation_IsOnto(){
     Map<String, Boolean> checklist = new HashMap<String, Boolean>();
-    for(Primitive prim : _netlist.getPrimitives()){
+    for (Primitive prim : _netlist.getPrimitives()){
       checklist.put(prim.getName(), false);
     }
     
-    for(String nodeName : _schematic.getNodes().keySet()){
-      if(checklist.containsKey(nodeName)){
+    for (String nodeName : _schematic.getNodes().keySet()){
+      if (checklist.containsKey(nodeName)){
         checklist.put(nodeName, true);
       }
     }
     
-    for(Map.Entry<String, Boolean> entry : checklist.entrySet()){
-      if(entry.getValue() == false){
-        fail("no corresponding node found for primitive '" + entry.getKey() + "'");
+    for (Map.Entry<String, Boolean> entry : checklist.entrySet()){
+      if (entry.getValue() == false){
+        fail("no corresponding node found for primitive '" 
+          + entry.getKey() + "'");
       }
     }
   }
@@ -214,21 +236,22 @@ public class TestNetlist {
   public void testPrimitiveTranslation_IsOneToOne(){
     Map<String, Boolean> checklist = new HashMap<String, Boolean>();
     
-    for(Map.Entry<String, Node> nodeEntry : _schematic.getNodes().entrySet()){
+    for (Map.Entry<String, Node> nodeEntry : _schematic.getNodes().entrySet()){
       String nodeName = nodeEntry.getKey();
       Node node = nodeEntry.getValue();
       checklist.put(nodeName, false);
     }
     
-    for(Primitive prim : _netlist.getPrimitives()){
-      if(checklist.containsKey(prim.getName())){
+    for (Primitive prim : _netlist.getPrimitives()){
+      if (checklist.containsKey(prim.getName())){
         checklist.put(prim.getName(), true);
       }
     }
     
-    for(Map.Entry<String, Boolean> entry : checklist.entrySet()){
-      if(entry.getValue() == false){
-        fail("no corresponding primitive found for node '" + entry.getKey() + "'");
+    for (Map.Entry<String, Boolean> entry : checklist.entrySet()){
+      if (entry.getValue() == false){
+        fail("no corresponding primitive found for node '" 
+          + entry.getKey() + "'");
       }
     }
   }

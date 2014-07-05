@@ -20,8 +20,9 @@ public class Port {
     return attachedNet;
   }
   public void setNet(Net net) throws NetlistConstructionException{
-    if(attachedNet != null){
-      throw new NetlistConstructionException("attempted to set net twice on port '" + name + "'");
+    if (attachedNet != null){
+      throw new NetlistConstructionException(
+          "attempted to set net twice on port '" + name + "'");
     }
     attachedNet = net;
   }

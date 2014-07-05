@@ -23,34 +23,39 @@ public class TestRegisterPrimitive {
   }
   
   @Test
-  public void testConstruction() throws NetlistConstructionException, SchematicException {
+  public void testConstruction() 
+      throws NetlistConstructionException, SchematicException {
     Node register = TestNetlist.instantiateRegister(true, true, true, true);
     RegisterPrimitive regPrim = new RegisterPrimitive("reg", register);
   }
   
   @Test
-  public void testIsInitialValueHigh() throws NetlistConstructionException, SchematicException {
+  public void testIsInitialValueHigh() 
+      throws NetlistConstructionException, SchematicException {
     Node register = TestNetlist.instantiateRegister(false, true, true, true);
     RegisterPrimitive regPrim = new RegisterPrimitive("reg", register);
     assertFalse(regPrim.isInitialValueHigh());
   }
   
   @Test
-  public void testIsResetActiveHigh() throws NetlistConstructionException, SchematicException {
+  public void testIsResetActiveHigh() 
+      throws NetlistConstructionException, SchematicException {
     Node register = TestNetlist.instantiateRegister(true, false, true, true);
     RegisterPrimitive regPrim = new RegisterPrimitive("reg", register);
     assertFalse(regPrim.isResetActiveHigh());
   }
   
   @Test
-  public void testIsResetAsynchronous() throws NetlistConstructionException, SchematicException {
+  public void testIsResetAsynchronous() 
+      throws NetlistConstructionException, SchematicException {
     Node register = TestNetlist.instantiateRegister(true, true, false, true);
     RegisterPrimitive regPrim = new RegisterPrimitive("reg", register);
     assertFalse(regPrim.isResetAsynchronous());
   }
   
   @Test
-  public void testIsClockActiveHigh() throws NetlistConstructionException, SchematicException {
+  public void testIsClockActiveHigh() 
+      throws NetlistConstructionException, SchematicException {
     Node register = TestNetlist.instantiateRegister(true, true, true, false);
     RegisterPrimitive regPrim = new RegisterPrimitive("reg", register);
     assertFalse(regPrim.isClockActiveHigh());

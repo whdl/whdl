@@ -17,9 +17,9 @@ public abstract class Primitive {
   }
   
   public Port getPort(String portName) throws UndeclaredIdentifierException{
-    if(ports.containsKey(portName)){
+    if (ports.containsKey(portName)){
       return ports.get(portName);
-    }else{
+    } else {
       throw new UndeclaredIdentifierException(portName);
     }
   }

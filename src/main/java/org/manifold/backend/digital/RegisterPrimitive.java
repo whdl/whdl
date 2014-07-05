@@ -28,16 +28,22 @@ public class RegisterPrimitive extends Primitive {
     return clockActiveHigh;
   }
   
-  public RegisterPrimitive(String name, Node node) throws PrimitiveConstructionException{
+  public RegisterPrimitive(String name, Node node) 
+      throws PrimitiveConstructionException{
     super(name);
     
-    try{
-      initialValue = ((BooleanValue)node.getAttribute("initialValue")).getValue();
-      resetActiveHigh = ((BooleanValue)node.getAttribute("resetActiveHigh")).getValue();
-      resetAsynchronous = ((BooleanValue)node.getAttribute("resetAsynchronous")).getValue();
-      clockActiveHigh = ((BooleanValue)node.getAttribute("clockActiveHigh")).getValue();
-    }catch(UndeclaredAttributeException uae){
-      throw new PrimitiveConstructionException("error while setting attributes of register '" + getName() + "'");
+    try {
+      initialValue = ((BooleanValue) 
+          node.getAttribute("initialValue")).getValue();
+      resetActiveHigh = ((BooleanValue) 
+          node.getAttribute("resetActiveHigh")).getValue();
+      resetAsynchronous = ((BooleanValue) 
+          node.getAttribute("resetAsynchronous")).getValue();
+      clockActiveHigh = ((BooleanValue) 
+          node.getAttribute("clockActiveHigh")).getValue();
+    } catch (UndeclaredAttributeException uae) {
+      throw new PrimitiveConstructionException(
+          "error while setting attributes of register '" + getName() + "'");
     }
     
     addPort(port_in);
