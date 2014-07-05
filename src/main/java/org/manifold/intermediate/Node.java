@@ -14,20 +14,14 @@ public class Node extends Value {
     return attributes.get(attrName);
   }
 
-  public void setAttribute(String attrName, Value attrValue) {
-    attributes.put(attrName, attrValue);
-  }
-
-
   public Port getPort(String portName) throws UndeclaredIdentifierException{
     if (ports.containsKey(portName)){
       return ports.get(portName);
     } else {
-      throw new UndeclaredIdentifierException(
-        "no port named '" + portName + "'"
-      );
+      throw new UndeclaredIdentifierException(portName);
     }
   }
+
   public String getPortName(Port port) throws UndeclaredIdentifierException{
     if(reversePorts.containsKey(port)){
       return reversePorts.get(port);
@@ -36,38 +30,32 @@ public class Node extends Value {
       throw new UndeclaredIdentifierException("no such port");
     }
   }
-  
-  public void setPortAttributes(
-      String portName,
-      String attrName,
-      Value attrValue
-  ) throws UndeclaredIdentifierException {
 
-    if (ports.containsKey(portName)) {
-      ports.get(portName).setAttribute(attrName, attrValue);
-    } else {
-      throw new UndeclaredIdentifierException(
-        "no port named '" + portName + "'"
-      );
-    }
-  }
-
-  public Node(NodeType type){
+  public Node(NodeType type, Map<String, Value> attrs,
+      Map<String, Map<String, Value>> portAttrMaps) throws SchematicException {
     super(type);
-    this.attributes = new Attributes();
+    this.attributes = new Attributes(type.getAttributes(), attrs);
     this.ports = new HashMap<>();
     this.reversePorts = new HashMap<>();
 
-    if (type.getPorts() != null) {
+    final Map<String, PortType> portTypes = type.getPorts();
+    if (portTypes != null) {
+      for (String portName : portAttrMaps.keySet()) {
+        if (!portTypes.containsKey(portName)) {
+          throw new UndeclaredIdentifierException(portName);
+        }
+      }
       for (Map.Entry<String, PortType> portEntry : type.getPorts().entrySet()) {
-        Port p = new Port(portEntry.getValue(), this); 
-        this.ports.put(
-          portEntry.getKey(),
-          p
-        );
-        this.reversePorts.put(p, portEntry.getKey());
+        String portName = portEntry.getKey();
+        PortType portType = portEntry.getValue();
+        Map<String, Value> portAttrs = portAttrMaps.get(portName);
+        if (portAttrs == null) {
+          throw new InvalidIdentifierException(portName);
+        }
+        Port newPort = new Port(portType, this, portAttrs);
+        this.ports.put(portName, newPort);
+        this.reversePorts.put(newPort, portName);
       }
     }
   }
-
 }
