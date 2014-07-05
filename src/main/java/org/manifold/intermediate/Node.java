@@ -2,11 +2,13 @@ package org.manifold.intermediate;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.NoSuchElementException;
 
 public class Node extends Value {
 
   private final Attributes attributes;
   private final Map<String, Port> ports;
+  private final Map<Port, String> reversePorts;
 
   public Value getAttribute(String attrName)
       throws UndeclaredAttributeException {
@@ -21,11 +23,20 @@ public class Node extends Value {
     }
   }
 
+  public String getPortName(Port port) throws NoSuchElementException {
+    if (reversePorts.containsKey(port)){
+      return reversePorts.get(port);
+    } else {
+      throw new NoSuchElementException();
+    }
+  }
+
   public Node(NodeType type, Map<String, Value> attrs,
       Map<String, Map<String, Value>> portAttrMaps) throws SchematicException {
     super(type);
     this.attributes = new Attributes(type.getAttributes(), attrs);
     this.ports = new HashMap<>();
+    this.reversePorts = new HashMap<>();
 
     final Map<String, PortType> portTypes = type.getPorts();
     if (portTypes != null) {
@@ -41,7 +52,9 @@ public class Node extends Value {
         if (portAttrs == null) {
           throw new InvalidIdentifierException(portName);
         }
-        this.ports.put(portName, new Port(portType, this, portAttrs));
+        Port newPort = new Port(portType, this, portAttrs);
+        this.ports.put(portName, newPort);
+        this.reversePorts.put(newPort, portName);
       }
     }
   }

@@ -7,5 +7,9 @@ public class BooleanValue extends Value {
     super(t);
     this.val = val;
   }
+  
+  public boolean getValue(){
+    return val;
+  }
 
 }
