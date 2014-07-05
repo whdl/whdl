@@ -17,14 +17,18 @@ import org.manifold.intermediate.BooleanType;
 import org.manifold.intermediate.BooleanValue;
 import org.manifold.intermediate.Connection;
 import org.manifold.intermediate.ConnectionType;
+import org.manifold.intermediate.InvalidAttributeException;
 import org.manifold.intermediate.MultipleAssignmentException;
 import org.manifold.intermediate.MultipleDefinitionException;
 import org.manifold.intermediate.Node;
 import org.manifold.intermediate.NodeType;
 import org.manifold.intermediate.PortType;
 import org.manifold.intermediate.Schematic;
+import org.manifold.intermediate.SchematicException;
 import org.manifold.intermediate.Type;
+import org.manifold.intermediate.UndeclaredAttributeException;
 import org.manifold.intermediate.UndeclaredIdentifierException;
+import org.manifold.intermediate.Value;
 
 @RunWith(value = Parameterized.class)
 public class TestNetlist {
@@ -32,7 +36,8 @@ public class TestNetlist {
   private static PortType digitalInPortType;
   private static PortType digitalOutPortType;
   
-  private static final Map<String, Type> noAttributes = new HashMap<String,Type>();
+  private static final Map<String, Type> noTypeAttributes = new HashMap<String,Type>();
+  private static final Map<String, Value> noAttributes = new HashMap<>();
   
   private static Map<String, Type> registerTypeAttributes = new HashMap<String, Type>();
   private static Map<String, PortType> registerTypePorts = new HashMap<String, PortType>();
@@ -50,8 +55,8 @@ public class TestNetlist {
   @BeforeClass
   public static void setupIntermediateTypes(){
     
-    digitalInPortType = new PortType(noAttributes);
-    digitalOutPortType = new PortType(noAttributes);
+    digitalInPortType = new PortType(noTypeAttributes);
+    digitalOutPortType = new PortType(noTypeAttributes);
     
     registerTypeAttributes.put("initialValue", BooleanType.getInstance());
     registerTypeAttributes.put("resetActiveHigh", BooleanType.getInstance());
@@ -64,12 +69,12 @@ public class TestNetlist {
     registerType = new NodeType(registerTypeAttributes, registerTypePorts);
     
     inputPinTypePorts.put("out", digitalOutPortType);
-    inputPinType = new NodeType(noAttributes, inputPinTypePorts);
+    inputPinType = new NodeType(noTypeAttributes, inputPinTypePorts);
     
     outputPinTypePorts.put("in", digitalInPortType);
-    outputPinType = new NodeType(noAttributes, outputPinTypePorts);
+    outputPinType = new NodeType(noTypeAttributes, outputPinTypePorts);
     
-    digitalWireType = new ConnectionType(noAttributes);
+    digitalWireType = new ConnectionType(noTypeAttributes);
   }
   
   public static Schematic instantiateSchematic(String name) throws MultipleDefinitionException{
@@ -85,34 +90,42 @@ public class TestNetlist {
     return s;
   }
   
-  public static Node instantiateRegister(boolean initialValue, boolean resetActiveHigh, boolean resetAsynchronous, boolean clockActiveHigh){
-    Node register = new Node(registerType);
-    
-    register.setAttribute("initialValue", new BooleanValue(BooleanType.getInstance(), initialValue));
-    register.setAttribute("resetActiveHigh", new BooleanValue(BooleanType.getInstance(), resetActiveHigh));
-    register.setAttribute("resetAsynchronous", new BooleanValue(BooleanType.getInstance(), resetAsynchronous));
-    register.setAttribute("clockActiveHigh", new BooleanValue(BooleanType.getInstance(), clockActiveHigh));
-    
+  public static Node instantiateRegister(boolean initialValue, boolean resetActiveHigh, boolean resetAsynchronous, boolean clockActiveHigh) throws SchematicException{
+    Map<String, Value> registerAttrs = new HashMap<>();
+    registerAttrs.put("initialValue", new BooleanValue(BooleanType.getInstance(), initialValue));
+    registerAttrs.put("resetActiveHigh", new BooleanValue(BooleanType.getInstance(), resetActiveHigh));
+    registerAttrs.put("resetAsynchronous", new BooleanValue(BooleanType.getInstance(), resetAsynchronous));
+    registerAttrs.put("clockActiveHigh", new BooleanValue(BooleanType.getInstance(), clockActiveHigh));
+    Map<String, Map<String, Value>> registerPortAttrs = new HashMap<>();
+    registerPortAttrs.put("in", noAttributes);
+    registerPortAttrs.put("out", noAttributes);
+    registerPortAttrs.put("clock", noAttributes);
+    registerPortAttrs.put("reset", noAttributes);
+    Node register = new Node(registerType, registerAttrs, registerPortAttrs);
     return register;
   }
   
-  public static Node instantiateInputPin(){
-    Node inputPin = new Node(inputPinType);
+  public static Node instantiateInputPin() throws SchematicException{
+    Map<String, Map<String, Value>> inputPinPortAttrs = new HashMap<>();
+    inputPinPortAttrs.put("out", noAttributes);
+    Node inputPin = new Node(inputPinType, noAttributes, inputPinPortAttrs);
     return inputPin;
   }
   
-  public static Node instantiateOutputPin(){
-    Node outputPin = new Node(outputPinType);
+  public static Node instantiateOutputPin() throws SchematicException{
+    Map<String, Map<String, Value>> outputPinPortAttrs = new HashMap<>();
+    outputPinPortAttrs.put("in", noAttributes);
+    Node outputPin = new Node(outputPinType, noAttributes, outputPinPortAttrs);
     return outputPin;
   }
   
-  public static Connection instantiateWire(org.manifold.intermediate.Port from, org.manifold.intermediate.Port to){
-    Connection wire = new Connection(digitalWireType, from, to);
+  public static Connection instantiateWire(org.manifold.intermediate.Port from, org.manifold.intermediate.Port to) throws UndeclaredAttributeException, InvalidAttributeException{
+    Connection wire = new Connection(digitalWireType, from, to, noAttributes);
     return wire;
   }
 
   @Parameters
-  public static Collection<Object[]> testSchematics() throws MultipleDefinitionException, UndeclaredIdentifierException, MultipleAssignmentException {
+  public static Collection<Object[]> testSchematics() throws SchematicException {
     List<Object[]> data = new LinkedList<Object[]>();
     
     // BEGIN CASE 0
