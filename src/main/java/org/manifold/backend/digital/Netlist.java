@@ -3,6 +3,7 @@ package org.manifold.backend.digital;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.function.BiFunction;
 
@@ -81,8 +82,12 @@ public class Netlist {
       String nodeName = e.getKey();
       Node node = e.getValue();
       NodeType nodeType = (NodeType)node.getType();
-      Primitive prim = primitiveConstructor.get(nodeType).apply(nodeName, node);
-      translatedPrimitives.put(node, prim);
+      if(primitiveConstructor.containsKey(nodeType)){
+        Primitive prim = primitiveConstructor.get(nodeType).apply(nodeName, node);
+        translatedPrimitives.put(node, prim);
+      }else{
+        throw new NetlistConstructionException("node '" + nodeName + "' has unknown type");
+      }
     }
     
     // Every digitalWire in the schematic is a statement that two ports are connected to the same net.
@@ -155,7 +160,7 @@ public class Netlist {
     String portName;
     try{
       portName = schParentNode.getPortName(schPort);
-    }catch(UndeclaredIdentifierException uie){
+    }catch(NoSuchElementException nsee){
       throw new NetlistConstructionException("internal error: unable to look up name of port belonging to node");
     }
     Port primitivePort = primitive.getPort(portName);

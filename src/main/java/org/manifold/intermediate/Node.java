@@ -2,6 +2,7 @@ package org.manifold.intermediate;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.NoSuchElementException;
 
 public class Node extends Value {
 
@@ -22,12 +23,11 @@ public class Node extends Value {
     }
   }
 
-  public String getPortName(Port port) throws UndeclaredIdentifierException{
+  public String getPortName(Port port) throws NoSuchElementException {
     if(reversePorts.containsKey(port)){
       return reversePorts.get(port);
     }else{
-      // FIXME this is NOT the right exception to throw!
-      throw new UndeclaredIdentifierException("no such port");
+      throw new NoSuchElementException();
     }
   }
 

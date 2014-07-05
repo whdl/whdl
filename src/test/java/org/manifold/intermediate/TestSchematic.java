@@ -312,6 +312,26 @@ public class TestSchematic {
   }
   
   @Test
+  public void testGetNodeName() throws SchematicException {
+    Schematic s = new Schematic("test");
+    NodeType n1Type = new NodeType(new HashMap<>(), new HashMap<>());
+    Node n1 = new Node(n1Type, new HashMap<>(), new HashMap<>());
+    String name = "n1";
+    s.addNode(name, n1);
+    
+    assertEquals(name, s.getNodeName(n1));
+  }
+  
+  @Test(expected = java.util.NoSuchElementException.class)
+  public void testGetNodeName_notInstantiated()
+      throws SchematicException {
+    Schematic s = new Schematic("test");
+    NodeType n1Type = new NodeType(new HashMap<>(), new HashMap<>());
+    Node n1 = new Node(n1Type, new HashMap<>(), new HashMap<>());
+    String name = s.getNodeName(n1);
+  }
+  
+  @Test
   public void testAddConnection() throws SchematicException {
     Schematic s = new Schematic("test");
     ConnectionType c1Type = new ConnectionType(new HashMap<>());

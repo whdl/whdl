@@ -77,17 +77,37 @@ public class TestNetlist {
     digitalWireType = new ConnectionType(noTypeAttributes);
   }
   
-  public static Schematic instantiateSchematic(String name) throws MultipleDefinitionException{
+  /**
+   * Instantiate a Schematic, but with varying degrees of "completeness" in terms of
+   * what object types are included. If types are missing, it will not be possible
+   * to construct a Netlist.
+   * @throws MultipleDefinitionException 
+   */
+  public static Schematic instantiateSchematic(String name, boolean includePortTypes, boolean includeNodeTypes, boolean includeConnectionTypes) throws MultipleDefinitionException{
     Schematic s = new Schematic(name);
-    s.addPortType("digitalIn", digitalInPortType);
-    s.addPortType("digitalOut", digitalOutPortType);
+    if(includePortTypes){
+      s.addPortType("digitalIn", digitalInPortType);
+      s.addPortType("digitalOut", digitalOutPortType);
+    }
     
-    s.addNodeType("register", registerType);
-    s.addNodeType("inputPin", inputPinType);
-    s.addNodeType("outputPin", outputPinType);
+    if(includeNodeTypes){
+      s.addNodeType("register", registerType);
+      s.addNodeType("inputPin", inputPinType);
+      s.addNodeType("outputPin", outputPinType);
+    }
     
-    s.addConnectionType("digitalWire", digitalWireType);
+    if(includeConnectionTypes){
+      s.addConnectionType("digitalWire", digitalWireType);
+    }
+    
     return s;
+  }
+  
+  /**
+   * Instantiate a Schematic and include all object types.
+   */
+  public static Schematic instantiateSchematic(String name) throws MultipleDefinitionException{
+    return instantiateSchematic(name, true, true, true);
   }
   
   public static Node instantiateRegister(boolean initialValue, boolean resetActiveHigh, boolean resetAsynchronous, boolean clockActiveHigh) throws SchematicException{
@@ -124,6 +144,8 @@ public class TestNetlist {
     return wire;
   }
 
+  // parameterized test cases
+  
   @Parameters
   public static Collection<Object[]> testSchematics() throws SchematicException {
     List<Object[]> data = new LinkedList<Object[]>();
