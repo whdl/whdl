@@ -22,7 +22,7 @@ public class Netlist {
   
   @FunctionalInterface
   interface BiFunctionConstructor<T, U, R> {
-    R apply(T t, U u) throws SchematicConstructionException;
+    R apply(T t, U u) throws NetlistConstructionException;
   }
   
   /**
@@ -45,7 +45,7 @@ public class Netlist {
   private PortType inPortType;
   private PortType outPortType;
   
-  public Netlist(Schematic schematic) throws SchematicConstructionException{
+  public Netlist(Schematic schematic) throws NetlistConstructionException{
     // start by examining the Schematic's definitions for certain node types we are interested in seeing
     try{
       primitiveConstructor.put(schematic.getNodeType("register"), (name, node) -> {
@@ -59,7 +59,7 @@ public class Netlist {
       });
     }catch(UndeclaredIdentifierException uie){
       // FIXME subclass this and make a more specific exception
-      throw new SchematicConstructionException(uie.getMessage() + " while searching for node types");
+      throw new NetlistConstructionException(uie.getMessage() + " while searching for node types");
     }
     
     // now look for connection types
@@ -67,7 +67,7 @@ public class Netlist {
       wireConnectionType = schematic.getConnectionType("digitalWire");
     }catch(UndeclaredIdentifierException uie){
       // FIXME subclass this
-      throw new SchematicConstructionException(uie.getMessage() + " while searching for connection types");
+      throw new NetlistConstructionException(uie.getMessage() + " while searching for connection types");
     }
     
     // now look for port types
@@ -76,7 +76,7 @@ public class Netlist {
       outPortType = schematic.getPortType("digitalOut");
     }catch(UndeclaredIdentifierException uie){
       // FIXME subclass this
-      throw new SchematicConstructionException(uie.getMessage() + " while searching for port types");
+      throw new NetlistConstructionException(uie.getMessage() + " while searching for port types");
     }
     
     // now, assuming that went well, we can build a lookup table from Node -> Primitive
@@ -100,18 +100,18 @@ public class Netlist {
       // check type
       if(!connection.getType().equals(wireConnectionType)){
         // FIXME subclass this
-        throw new SchematicConstructionException("connection '" + connectionName + "' has unknown type");
+        throw new NetlistConstructionException("connection '" + connectionName + "' has unknown type");
       }
       
       org.manifold.intermediate.Port schematicPortFrom = connection.getFrom();
       if(! (schematicPortFrom.getType().equals(inPortType) || schematicPortFrom.getType().equals(outPortType))){
         // FIXME subclass this
-        throw new SchematicConstructionException("'from' port on connection '" + connectionName + "' has unknown type");
+        throw new NetlistConstructionException("'from' port on connection '" + connectionName + "' has unknown type");
       }
       org.manifold.intermediate.Port schematicPortTo = connection.getTo();
       if(! (schematicPortTo.getType().equals(inPortType) || schematicPortTo.getType().equals(outPortType))){
         // FIXME subclass this
-        throw new SchematicConstructionException("'to' port on connection '" + connectionName + "' has unknown type");
+        throw new NetlistConstructionException("'to' port on connection '" + connectionName + "' has unknown type");
       }
       
       Port netlistPortFrom = translatePort(schematicPortFrom);
@@ -153,16 +153,16 @@ public class Netlist {
    * Translate a schematic port to a netlist port.
    * Each Port knows its parent Node; we have a map from Node to Primitive; and if we can get the name of
    * the Port from its Node, we can use that name to find the corresponding Port in the Primitive.
-   * @throws SchematicConstructionException 
+   * @throws NetlistConstructionException 
    */
-  private Port translatePort(org.manifold.intermediate.Port schPort) throws SchematicConstructionException{
+  private Port translatePort(org.manifold.intermediate.Port schPort) throws NetlistConstructionException{
     Node schParentNode = schPort.getParent();
     Primitive primitive = translatedPrimitives.get(schParentNode);
     String portName;
     try{
       portName = schParentNode.getPortName(schPort);
     }catch(UndeclaredIdentifierException uie){
-      throw new SchematicConstructionException("internal error: unable to look up name of port belonging to node");
+      throw new NetlistConstructionException("internal error: unable to look up name of port belonging to node");
     }
     Port primitivePort = primitive.getPort(portName);
     return primitivePort;

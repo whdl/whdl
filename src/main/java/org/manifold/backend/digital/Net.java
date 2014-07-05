@@ -20,12 +20,8 @@ public class Net {
     return java.util.Collections.unmodifiableSet(ports);
   }
   
-  public void addPort(Port p){
+  public void addPort(Port p) throws NetlistConstructionException{
     ports.add(p);
     p.setNet(this);
-  }
-  
-  public void removePort(Port p){
-    ports.remove(p);
   }
 }
