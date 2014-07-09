@@ -1,19 +1,19 @@
 package org.manifold.compiler.back;
 
-import org.manifold.compiler.StringType;
+import org.manifold.compiler.StringTypeValue;
 import org.manifold.compiler.ConnectionType;
 import org.manifold.compiler.ConstraintType;
 import org.manifold.compiler.UndeclaredIdentifierException;
-import org.manifold.compiler.PortType;
-import org.manifold.compiler.Constraint;
-import org.manifold.compiler.Type;
+import org.manifold.compiler.PortTypeValue;
+import org.manifold.compiler.ConstraintValue;
+import org.manifold.compiler.TypeValue;
 import org.manifold.compiler.MultipleAssignmentException;
-import org.manifold.compiler.Node;
-import org.manifold.compiler.Port;
-import org.manifold.compiler.Connection;
-import org.manifold.compiler.IntegerType;
+import org.manifold.compiler.NodeValue;
+import org.manifold.compiler.PortValue;
+import org.manifold.compiler.ConnectionValue;
+import org.manifold.compiler.IntegerTypeValue;
 import org.manifold.compiler.MultipleDefinitionException;
-import org.manifold.compiler.NodeType;
+import org.manifold.compiler.NodeTypeValue;
 import org.manifold.compiler.Value;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
@@ -29,24 +29,24 @@ import java.util.Map;
 
 public class TestSchematic {
   
-  private static final PortType defaultPortDefinition =
-      new PortType(new HashMap<>());
+  private static final PortTypeValue defaultPortDefinition =
+      new PortTypeValue(new HashMap<>());
   private static final String PORT_NAME1 = "P1";
   private static final String PORT_NAME2 = "P2";
   
-  private Node n;
-  private Port p1, p2;
+  private NodeValue n;
+  private PortValue p1, p2;
   
   @Before
   public void setup() throws SchematicException {
-    Map<String, PortType> portMap = ImmutableMap.of(
+    Map<String, PortTypeValue> portMap = ImmutableMap.of(
         PORT_NAME1, defaultPortDefinition,
         PORT_NAME2, defaultPortDefinition);
     Map<String, Map<String, Value>> portAttrMap = ImmutableMap.of(
         PORT_NAME1, ImmutableMap.of(),
         PORT_NAME2, ImmutableMap.of());
-    NodeType nType = new NodeType(new HashMap<>(), portMap);
-    n = new Node(nType, new HashMap<>(), portAttrMap);
+    NodeTypeValue nType = new NodeTypeValue(new HashMap<>(), portMap);
+    n = new NodeValue(nType, new HashMap<>(), portAttrMap);
     
     p1 = n.getPort(PORT_NAME1);
     p2 = n.getPort(PORT_NAME2);
@@ -55,7 +55,7 @@ public class TestSchematic {
   @Test
   public void testAddTypeDef() throws MultipleDefinitionException {
     Schematic s = new Schematic("test");
-    Type t1 = IntegerType.getInstance();
+    TypeValue t1 = IntegerTypeValue.getInstance();
     s.addUserDefinedType("foo", t1);
   }
   
@@ -67,12 +67,12 @@ public class TestSchematic {
     // is the same string.
     Schematic s = new Schematic("test");
     try {
-      Type t1 = IntegerType.getInstance();
+      TypeValue t1 = IntegerTypeValue.getInstance();
       s.addUserDefinedType("foo", t1);
     } catch (MultipleDefinitionException mde) {
       fail("exception thrown too early: " + mde.getMessage());
     }
-    Type t2 = IntegerType.getInstance();
+    TypeValue t2 = IntegerTypeValue.getInstance();
     s.addUserDefinedType("foo", t2);
   }
   
@@ -83,7 +83,7 @@ public class TestSchematic {
     // of "Int". Since "Int" is a built-in type, this should result in a
     // MultipleDefinitionException being thrown.
     Schematic s = new Schematic("test");
-    Type td = StringType.getInstance();
+    TypeValue td = StringTypeValue.getInstance();
     s.addUserDefinedType("Int", td);
   }
   
@@ -91,9 +91,9 @@ public class TestSchematic {
   public void testGetTypeDef()
       throws UndeclaredIdentifierException, MultipleDefinitionException {
     Schematic s = new Schematic("test");
-    Type expected = IntegerType.getInstance();
+    TypeValue expected = IntegerTypeValue.getInstance();
     s.addUserDefinedType("foo", expected);
-    Type actual = s.getUserDefinedType("foo");
+    TypeValue actual = s.getUserDefinedType("foo");
     assertEquals(expected, actual);
   }
   
@@ -101,13 +101,13 @@ public class TestSchematic {
   public void testGetTypeDef_notDeclared()
       throws UndeclaredIdentifierException {
     Schematic s = new Schematic("test");
-    Type bogus = s.getUserDefinedType("does-not-exist");
+    TypeValue bogus = s.getUserDefinedType("does-not-exist");
   }
   
   @Test
   public void testAddPortDef() throws MultipleDefinitionException {
     Schematic s = new Schematic("test");
-    PortType e1 = new PortType(new HashMap<>());
+    PortTypeValue e1 = new PortTypeValue(new HashMap<>());
     s.addPortType("n1", e1);
   }
   
@@ -118,12 +118,12 @@ public class TestSchematic {
     // is the same string.
     Schematic s = new Schematic("test");
     try {
-      PortType n1 = new PortType(new HashMap<>());
+      PortTypeValue n1 = new PortTypeValue(new HashMap<>());
       s.addPortType("foo", n1);
     } catch (MultipleDefinitionException mde) {
       fail("exception thrown too early: " + mde.getMessage());
     }
-    PortType n2 = new PortType(new HashMap<>());
+    PortTypeValue n2 = new PortTypeValue(new HashMap<>());
     s.addPortType("foo", n2);
   }
   
@@ -131,9 +131,9 @@ public class TestSchematic {
   public void testGetPortDef()
       throws UndeclaredIdentifierException, MultipleDefinitionException{
     Schematic s = new Schematic("test");
-    PortType expected = new PortType(new HashMap<>());
+    PortTypeValue expected = new PortTypeValue(new HashMap<>());
     s.addPortType("foo", expected);
-    PortType actual = s.getPortType("foo");
+    PortTypeValue actual = s.getPortType("foo");
     assertEquals(expected, actual);
   }
   
@@ -141,13 +141,13 @@ public class TestSchematic {
   public void testGetPortDef_notDeclared()
       throws UndeclaredIdentifierException {
     Schematic s = new Schematic("test");
-    PortType bogus = s.getPortType("does-not-exist");
+    PortTypeValue bogus = s.getPortType("does-not-exist");
   }
   
   @Test
   public void testAddNodeDef() throws MultipleDefinitionException {
     Schematic s = new Schematic("test");
-    NodeType n1 = new NodeType(new HashMap<>(), new HashMap<>());
+    NodeTypeValue n1 = new NodeTypeValue(new HashMap<>(), new HashMap<>());
     s.addNodeType("n1", n1);
   }
   
@@ -158,12 +158,12 @@ public class TestSchematic {
     // is the same string.
     Schematic s = new Schematic("test");
     try {
-      NodeType n1 = new NodeType(new HashMap<>(), new HashMap<>());
+      NodeTypeValue n1 = new NodeTypeValue(new HashMap<>(), new HashMap<>());
       s.addNodeType("foo", n1);
     } catch (MultipleDefinitionException mde) {
       fail("exception thrown too early: " + mde.getMessage());
     }
-    NodeType n2 = new NodeType(new HashMap<>(), new HashMap<>());
+    NodeTypeValue n2 = new NodeTypeValue(new HashMap<>(), new HashMap<>());
     s.addNodeType("foo", n2);
   }
   
@@ -171,9 +171,12 @@ public class TestSchematic {
   public void testGetNodeDef()
       throws UndeclaredIdentifierException, MultipleDefinitionException{
     Schematic s = new Schematic("test");
-    NodeType expected = new NodeType(new HashMap<>(), new HashMap<>());
+    NodeTypeValue expected = new NodeTypeValue(
+        new HashMap<>(),
+        new HashMap<>()
+    );
     s.addNodeType("foo", expected);
-    NodeType actual = s.getNodeType("foo");
+    NodeTypeValue actual = s.getNodeType("foo");
     assertEquals(expected, actual);
   }
   
@@ -181,7 +184,7 @@ public class TestSchematic {
   public void testGetNodeDef_notDeclared()
       throws UndeclaredIdentifierException {
     Schematic s = new Schematic("test");
-    NodeType bogus = s.getNodeType("does-not-exist");
+    NodeTypeValue bogus = s.getNodeType("does-not-exist");
   }
   
   @Test
@@ -273,11 +276,11 @@ public class TestSchematic {
     // definition" exception.
     Schematic s = new Schematic("test");
     
-    Type t1 = StringType.getInstance();
+    TypeValue t1 = StringTypeValue.getInstance();
     ConstraintType ct1 = new ConstraintType(new HashMap<>());
     ConnectionType cn1 = new ConnectionType(new HashMap<>());
-    NodeType n1 = new NodeType(new HashMap<>(), new HashMap<>());
-    PortType e1 = new PortType(new HashMap<>());
+    NodeTypeValue n1 = new NodeTypeValue(new HashMap<>(), new HashMap<>());
+    PortTypeValue e1 = new PortTypeValue(new HashMap<>());
     
     s.addUserDefinedType("foo", t1);
     s.addConstraintType("foo", ct1);
@@ -289,33 +292,33 @@ public class TestSchematic {
   @Test
   public void testAddNode() throws SchematicException {
     Schematic s = new Schematic("test");
-    NodeType n1Type = new NodeType(new HashMap<>(), new HashMap<>());
-    Node n1 = new Node(n1Type, new HashMap<>(), new HashMap<>());
+    NodeTypeValue n1Type = new NodeTypeValue(new HashMap<>(), new HashMap<>());
+    NodeValue n1 = new NodeValue(n1Type, new HashMap<>(), new HashMap<>());
     s.addNode("n1", n1);
   }
   
   @Test(expected = org.manifold.compiler.MultipleAssignmentException.class)
   public void testAddNode_multipleInstantiation() throws SchematicException {
     Schematic s = new Schematic("test");
-    NodeType n1Type = new NodeType(new HashMap<>(), new HashMap<>());
+    NodeTypeValue n1Type = new NodeTypeValue(new HashMap<>(), new HashMap<>());
     try {
-      Node n1 = new Node(n1Type, new HashMap<>(), new HashMap<>());
+      NodeValue n1 = new NodeValue(n1Type, new HashMap<>(), new HashMap<>());
       s.addNode("n1", n1);
     } catch (MultipleAssignmentException mie) {
       fail("exception thrown too early");
     }
-    Node n1Dup = new Node(n1Type, new HashMap<>(), new HashMap<>());
+    NodeValue n1Dup = new NodeValue(n1Type, new HashMap<>(), new HashMap<>());
     s.addNode("n1", n1Dup);
   }
   
   @Test
   public void testGetNode() throws SchematicException {
     Schematic s = new Schematic("test");
-    NodeType n1Type = new NodeType(new HashMap<>(), new HashMap<>());
-    Node n1 = new Node(n1Type, new HashMap<>(), new HashMap<>());
+    NodeTypeValue n1Type = new NodeTypeValue(new HashMap<>(), new HashMap<>());
+    NodeValue n1 = new NodeValue(n1Type, new HashMap<>(), new HashMap<>());
     s.addNode("n1", n1);
     
-    Node actual = s.getNode("n1");
+    NodeValue actual = s.getNode("n1");
     assertSame(n1, actual);
   }
   
@@ -330,7 +333,7 @@ public class TestSchematic {
   public void testAddConnection() throws SchematicException {
     Schematic s = new Schematic("test");
     ConnectionType c1Type = new ConnectionType(new HashMap<>());
-    Connection c1 = new Connection(c1Type, p1, p2, new HashMap<>());
+    ConnectionValue c1 = new ConnectionValue(c1Type, p1, p2, new HashMap<>());
     s.addConnection("c1", c1);
   }
   
@@ -340,12 +343,17 @@ public class TestSchematic {
     Schematic s = new Schematic("test");
     ConnectionType c1Type = new ConnectionType(new HashMap<>());
     try {
-      Connection c1 = new Connection(c1Type, p1, p2, new HashMap<>());
+      ConnectionValue c1 = new ConnectionValue(c1Type, p1, p2, new HashMap<>());
       s.addConnection("c1", c1);
     } catch (MultipleAssignmentException mie) {
       fail("exception thrown too early");
     }
-    Connection c1Dup = new Connection(c1Type, p1, p2, new HashMap<>());
+    ConnectionValue c1Dup = new ConnectionValue(
+        c1Type,
+        p1,
+        p2,
+        new HashMap<>()
+    );
     s.addConnection("c1", c1Dup);
   }
   
@@ -353,9 +361,9 @@ public class TestSchematic {
   public void testGetConnection() throws SchematicException {
     Schematic s = new Schematic("test");
     ConnectionType c1Type = new ConnectionType(new HashMap<>());
-    Connection c1 = new Connection(c1Type, p1, p2, new HashMap<>());
+    ConnectionValue c1 = new ConnectionValue(c1Type, p1, p2, new HashMap<>());
     s.addConnection("c1", c1);
-    Connection actual = s.getConnection("c1");
+    ConnectionValue actual = s.getConnection("c1");
     assertSame(c1, actual);
   }
   
@@ -370,7 +378,7 @@ public class TestSchematic {
   public void testAddConstraint() throws SchematicException {
     Schematic s = new Schematic("test");
     ConstraintType c1Type = new ConstraintType(new HashMap<>());
-    Constraint c1 = new Constraint(c1Type, new HashMap<>());
+    ConstraintValue c1 = new ConstraintValue(c1Type, new HashMap<>());
     s.addConstraint("c1", c1);
   }
   
@@ -381,13 +389,13 @@ public class TestSchematic {
     ConstraintType c1Type = new ConstraintType(new HashMap<>());
     
     try {
-      Constraint c1 = new Constraint(c1Type, new HashMap<>());
+      ConstraintValue c1 = new ConstraintValue(c1Type, new HashMap<>());
       s.addConstraint("c1", c1);
     } catch (MultipleAssignmentException mie) {
       fail("exception thrown too early");
     }
     
-    Constraint c1Dup = new Constraint(c1Type, new HashMap<>());
+    ConstraintValue c1Dup = new ConstraintValue(c1Type, new HashMap<>());
     s.addConstraint("c1", c1Dup);
   }
   
@@ -395,10 +403,10 @@ public class TestSchematic {
   public void testGetConstraint() throws SchematicException {
     Schematic s = new Schematic("test");
     ConstraintType c1Type = new ConstraintType(new HashMap<>());
-    Constraint c1 = new Constraint(c1Type, new HashMap<>());
+    ConstraintValue c1 = new ConstraintValue(c1Type, new HashMap<>());
     s.addConstraint("c1", c1);
     
-    Constraint actual = s.getConstraint("c1");
+    ConstraintValue actual = s.getConstraint("c1");
     assertSame(c1, actual);
   }
   

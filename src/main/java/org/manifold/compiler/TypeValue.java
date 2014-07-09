@@ -1,5 +1,4 @@
-package org.manifold.compiler.front;
-
+package org.manifold.compiler;
 
 public abstract class TypeValue extends Value {
 
@@ -14,6 +13,10 @@ public abstract class TypeValue extends Value {
   *
   *   private abstract TypeValue();
   */
+  
+  public TypeValue() {
+    super(TypeTypeValue.getInstance());
+  }
 
   public TypeValue getType() {
     return TypeTypeValue.getInstance();

@@ -1,4 +1,4 @@
-package org.manifold.compiler.front;
+package org.manifold.compiler;
 
 public class BooleanTypeValue extends TypeValue {
 
@@ -10,5 +10,4 @@ public class BooleanTypeValue extends TypeValue {
 
   private BooleanTypeValue() { }
 
-  public void verify() { }
 }

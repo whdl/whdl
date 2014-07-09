@@ -1,20 +1,20 @@
 package org.manifold.compiler.back;
 
 import org.manifold.compiler.MultipleDefinitionException;
-import org.manifold.compiler.StringType;
+import org.manifold.compiler.StringTypeValue;
 import org.manifold.compiler.MultipleAssignmentException;
-import org.manifold.compiler.Node;
-import org.manifold.compiler.Connection;
+import org.manifold.compiler.NodeValue;
+import org.manifold.compiler.ConnectionValue;
 import org.manifold.compiler.ConnectionType;
-import org.manifold.compiler.NodeType;
-import org.manifold.compiler.PortType;
-import org.manifold.compiler.Type;
+import org.manifold.compiler.NodeTypeValue;
+import org.manifold.compiler.PortTypeValue;
+import org.manifold.compiler.TypeValue;
 import org.manifold.compiler.UndeclaredIdentifierException;
 import org.manifold.compiler.ConstraintType;
-import org.manifold.compiler.Constraint;
+import org.manifold.compiler.ConstraintValue;
 import org.manifold.compiler.UndefinedBehaviourError;
-import org.manifold.compiler.BooleanType;
-import org.manifold.compiler.IntegerType;
+import org.manifold.compiler.BooleanTypeValue;
+import org.manifold.compiler.IntegerTypeValue;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -34,18 +34,18 @@ public class Schematic {
   
   // Maps containing object definitions for this schematic; they are all
   // indexed by the (string) type-name of the object.
-  private final Map<String, Type> userDefinedTypes;
-  private final Map<String, PortType> portTypes;
-  private final Map<String, NodeType> nodeTypes;
+  private final Map<String, TypeValue> userDefinedTypes;
+  private final Map<String, PortTypeValue> portTypes;
+  private final Map<String, NodeTypeValue> nodeTypes;
   private final Map<String, ConnectionType> connectionTypes;
   private final Map<String, ConstraintType> constraintTypes;
   
   // Maps containing instantiated objects for this schematic; they are all
   // indexed by the (string) instance-name of the object.
-  private final Map<String, Node> nodes;
-  private final Map<Node, String> reverseNodeMap;
-  private final Map<String, Connection> connections;
-  private final Map<String, Constraint> constraints;
+  private final Map<String, NodeValue> nodes;
+  private final Map<NodeValue, String> reverseNodeMap;
+  private final Map<String, ConnectionValue> connections;
+  private final Map<String, ConstraintValue> constraints;
 
   public Schematic(String name) {
     this.name = name;
@@ -70,9 +70,9 @@ public class Schematic {
    * represented in here.
    */
   private void populateDefaultType(){
-    Type boolType = BooleanType.getInstance();
-    Type intType = IntegerType.getInstance();
-    Type stringType = StringType.getInstance();
+    TypeValue boolType = BooleanTypeValue.getInstance();
+    TypeValue intType = IntegerTypeValue.getInstance();
+    TypeValue stringType = StringTypeValue.getInstance();
     
     try {
       addUserDefinedType("Bool", boolType);
@@ -87,7 +87,7 @@ public class Schematic {
     }
   }
   
-  public void addUserDefinedType(String typename, Type td)
+  public void addUserDefinedType(String typename, TypeValue td)
       throws MultipleDefinitionException{
     if (userDefinedTypes.containsKey(typename)){
       throw new MultipleDefinitionException("type-definition", typename);
@@ -95,7 +95,7 @@ public class Schematic {
     userDefinedTypes.put(typename, td);
   }
   
-  public Type getUserDefinedType(String typename)
+  public TypeValue getUserDefinedType(String typename)
       throws UndeclaredIdentifierException {
     if (userDefinedTypes.containsKey(typename)) {
       return userDefinedTypes.get(typename);
@@ -104,7 +104,7 @@ public class Schematic {
     }
   }
   
-  public void addPortType(String typename, PortType portType)
+  public void addPortType(String typename, PortTypeValue portType)
       throws MultipleDefinitionException{
     if (portTypes.containsKey(typename)) {
       throw new MultipleDefinitionException("port-definition", typename);
@@ -112,7 +112,7 @@ public class Schematic {
     portTypes.put(typename, portType);
   }
   
-  public PortType getPortType(String typename)
+  public PortTypeValue getPortType(String typename)
       throws UndeclaredIdentifierException {
     if (portTypes.containsKey(typename)) {
       return portTypes.get(typename);
@@ -121,7 +121,7 @@ public class Schematic {
     }
   }
   
-  public void addNodeType(String typename, NodeType nd)
+  public void addNodeType(String typename, NodeTypeValue nd)
       throws MultipleDefinitionException{
     if (nodeTypes.containsKey(typename)) {
       throw new MultipleDefinitionException("node-definition", typename);
@@ -129,7 +129,7 @@ public class Schematic {
     nodeTypes.put(typename, nd);
   }
   
-  public NodeType getNodeType(String typename)
+  public NodeTypeValue getNodeType(String typename)
       throws UndeclaredIdentifierException {
     
     if (nodeTypes.containsKey(typename)){
@@ -173,7 +173,7 @@ public class Schematic {
     }
   }
   
-  public void addNode(String instanceName, Node node)
+  public void addNode(String instanceName, NodeValue node)
       throws MultipleAssignmentException {
     if (nodes.containsKey(instanceName) || reverseNodeMap.containsKey(node)) {
       throw new MultipleAssignmentException("node", instanceName);
@@ -182,7 +182,7 @@ public class Schematic {
     reverseNodeMap.put(node, instanceName);
   }
   
-  public Node getNode(String instanceName)
+  public NodeValue getNode(String instanceName)
       throws UndeclaredIdentifierException {
     if (nodes.containsKey(instanceName)){
       return nodes.get(instanceName);
@@ -191,14 +191,14 @@ public class Schematic {
     }
   }
   
-  public String getNodeName(Node instance) {
+  public String getNodeName(NodeValue instance) {
     if (reverseNodeMap.containsKey(instance)) {
       return reverseNodeMap.get(instance);
     }
     throw new NoSuchElementException();
   }
   
-  public void addConnection(String instanceName, Connection conn)
+  public void addConnection(String instanceName, ConnectionValue conn)
       throws MultipleAssignmentException {
     if (connections.containsKey(instanceName)) {
       throw new MultipleAssignmentException("connection", instanceName);
@@ -206,7 +206,7 @@ public class Schematic {
     connections.put(instanceName, conn);
   }
   
-  public Connection getConnection(String instanceName)
+  public ConnectionValue getConnection(String instanceName)
       throws UndeclaredIdentifierException {
     if (connections.containsKey(instanceName)){
       return connections.get(instanceName);
@@ -215,7 +215,7 @@ public class Schematic {
     }
   }
   
-  public void addConstraint(String instanceName, Constraint constraint)
+  public void addConstraint(String instanceName, ConstraintValue constraint)
       throws MultipleAssignmentException {
     if (constraints.containsKey(instanceName)){
       throw new MultipleAssignmentException("constraint", instanceName);
@@ -223,7 +223,7 @@ public class Schematic {
     constraints.put(instanceName, constraint);
   }
   
-  public Constraint getConstraint(String instanceName)
+  public ConstraintValue getConstraint(String instanceName)
       throws UndeclaredIdentifierException {
     if (constraints.containsKey(instanceName)){
       return constraints.get(instanceName);

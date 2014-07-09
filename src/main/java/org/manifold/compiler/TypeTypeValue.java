@@ -1,4 +1,4 @@
-package org.manifold.compiler.front;
+package org.manifold.compiler;
 
 public class TypeTypeValue extends TypeValue {
 
