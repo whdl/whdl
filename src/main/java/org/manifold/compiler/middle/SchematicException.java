@@ -1,4 +1,4 @@
-package org.manifold.compiler.back;
+package org.manifold.compiler.middle;
 
 /**
  * Base class for errors caused by the data from the Schematic being invalid.

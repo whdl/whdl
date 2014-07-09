@@ -1,5 +1,7 @@
 package org.manifold.compiler.back;
 
+import org.manifold.compiler.middle.SchematicException;
+import org.manifold.compiler.middle.Schematic;
 import org.manifold.compiler.StringTypeValue;
 import org.manifold.compiler.ConnectionType;
 import org.manifold.compiler.ConstraintType;

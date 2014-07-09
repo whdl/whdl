@@ -1,4 +1,4 @@
-package org.manifold.compiler.back;
+package org.manifold.compiler.middle;
 
 import org.manifold.compiler.MultipleDefinitionException;
 import org.manifold.compiler.StringTypeValue;
