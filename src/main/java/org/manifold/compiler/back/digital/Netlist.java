@@ -12,6 +12,8 @@ import org.manifold.compiler.TypeMismatchException;
 import org.manifold.compiler.UndeclaredIdentifierException;
 import org.manifold.compiler.middle.Schematic;
 
+import com.google.common.collect.ImmutableMap;
+
 public class Netlist {
   
   private ConnectionType digitalWireType;
@@ -19,7 +21,18 @@ public class Netlist {
   private PortTypeValue digitalOutType;
   
   private Map<String, Net> nets = new HashMap<>();
+  public Map<String, Net> getNets() {
+    return ImmutableMap.copyOf(nets);
+  }
   private Map<PortValue, Net> connectedNet = new HashMap<>();
+  public Net getConnectedNet(PortValue port) {
+    if (connectedNet.containsKey(port)) {
+      return connectedNet.get(port);
+    } else {
+      // TODO(murphy) throw an exception?
+      return null;
+    }
+  }
   
   public Netlist(Schematic schematic) 
       throws UndeclaredIdentifierException, TypeMismatchException {
