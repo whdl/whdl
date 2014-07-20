@@ -89,9 +89,7 @@ public class TestDRC_NoMultipleDrivers {
 
   @Test
   public void testDRC() {
-    DesignRuleCheck drc = new DRC_NoMultipleDrivers(netlist,
-        UtilSchematicConstruction.digitalInPortType,
-        UtilSchematicConstruction.digitalOutPortType);
+    DesignRuleCheck drc = new DRC_NoMultipleDrivers(netlist);
     drc.check();
     boolean actualCheckResult = drc.passed();
     assertEquals(expectedCheckResult, actualCheckResult);

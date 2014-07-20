@@ -17,8 +17,17 @@ import com.google.common.collect.ImmutableMap;
 public class Netlist {
   
   private ConnectionType digitalWireType;
+  public ConnectionType getDigitalWireType() {
+    return digitalWireType;
+  }
   private PortTypeValue digitalInType;
+  public PortTypeValue getDigitalInType() {
+    return digitalInType;
+  }
   private PortTypeValue digitalOutType;
+  public PortTypeValue getDigitalOutType() {
+    return digitalOutType;
+  }
   
   private Map<String, Net> nets = new HashMap<>();
   public Map<String, Net> getNets() {

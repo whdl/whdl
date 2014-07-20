@@ -1,7 +1,5 @@
 package org.manifold.compiler.back.digital;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.Map;
 
 import org.manifold.compiler.PortTypeValue;
@@ -14,22 +12,25 @@ public class DRC_NoMultipleDrivers extends DesignRuleCheck {
   private PortTypeValue digitalInType;
   private PortTypeValue digitalOutType;
 
-  public DRC_NoMultipleDrivers(Netlist netlist, PortTypeValue digitalInType,
-      PortTypeValue digitalOutType) {
-    this.netlist = checkNotNull(netlist);
-    this.digitalInType = checkNotNull(digitalInType);
-    this.digitalOutType = checkNotNull(digitalOutType);
+  public DRC_NoMultipleDrivers(Netlist netlist) {
+    this.netlist = netlist;
+    this.digitalInType = netlist.getDigitalInType();
+    this.digitalOutType = netlist.getDigitalOutType();
   }
 
   @Override
   public void check() {
+    System.err.println("expected digital out type = "
+        + digitalOutType.toString());
     Map<String, Net> allNets = netlist.getNets();
     boolean noMultipleDrivers = true;
     for (Net net : allNets.values()) {
       int nDrivers = 0;
       // a driver is any Port of type `digitalOutType`
       for (PortValue port : net.getConnectedPorts()) {
-        if (port.getType().equals(digitalOutType)) {
+        System.err.println("port type = "
+            + port.getType().toString());
+        if (port.getType() == digitalOutType) {
           nDrivers += 1;
         }
       }
