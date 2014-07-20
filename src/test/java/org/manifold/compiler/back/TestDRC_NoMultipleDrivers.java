@@ -54,7 +54,6 @@ public class TestDRC_NoMultipleDrivers {
     // |in0> -+- <out0|
     // |in1> -|
     // no multiple drivers: FALSE
-    // END CASE 1
     {
       Schematic case1 = UtilSchematicConstruction.instantiateSchematic("case1");
       NodeValue in0 = UtilSchematicConstruction.instantiateInputPin();
@@ -74,6 +73,7 @@ public class TestDRC_NoMultipleDrivers {
       Object[] case1_data = new Object[] { netlist_case1, false };
       testData.add(case1_data);
     }
+    // END CASE 1
     return testData;
   }
 
