@@ -15,46 +15,48 @@ import org.manifold.compiler.middle.Schematic;
 import com.google.common.collect.ImmutableMap;
 
 public class Netlist {
-  
+
   private ConnectionType digitalWireType;
   private PortTypeValue digitalInType;
   private PortTypeValue digitalOutType;
-  
+
   private Map<String, Net> nets = new HashMap<>();
+
   public Map<String, Net> getNets() {
     return ImmutableMap.copyOf(nets);
   }
+
   private Map<PortValue, Net> connectedNet = new HashMap<>();
+
   public Net getConnectedNet(PortValue port) {
     if (connectedNet.containsKey(port)) {
       return connectedNet.get(port);
     } else {
-      // TODO(murphy) throw an exception?
-      return null;
+      throw new IllegalArgumentException("port not connected to any nets");
     }
   }
-  
-  public Netlist(Schematic schematic) 
-      throws UndeclaredIdentifierException, TypeMismatchException {
+
+  public Netlist(Schematic schematic) throws UndeclaredIdentifierException,
+      TypeMismatchException {
     digitalWireType = schematic.getConnectionType("digitalWire");
     digitalInType = schematic.getPortType("digitalIn");
     digitalOutType = schematic.getPortType("digitalOut");
-    
+
     // iterate over connections in the schematic and build nets
-    for (Entry<String, ConnectionValue> connEntry 
-        : schematic.getConnections().entrySet()) {
+    for (Entry<String, ConnectionValue> connEntry : schematic.getConnections()
+        .entrySet()) {
       String connectionName = connEntry.getKey();
       ConnectionValue connection = connEntry.getValue();
-      
-      verify_ConnectionIsDigitalWire(connection);
-      
+
+      verifyConnectionIsDigitalWire(connection);
+
       // get both ports
       PortValue portFrom = connection.getFrom();
       PortValue portTo = connection.getTo();
-      
-      verify_PortIsDigitalIO(portFrom);
-      verify_PortIsDigitalIO(portTo);
-      
+
+      verifyPortIsDigitalOut(portFrom);
+      verifyPortIsDigitalIn(portTo);
+
       // now we can take both ports and attach them to a net
       if (connectedNet.containsKey(portFrom)) {
         Net existingNet = connectedNet.get(portFrom);
@@ -79,24 +81,29 @@ public class Netlist {
       }
     }
   }
-  
-  private void verify_ConnectionIsDigitalWire(ConnectionValue connection) 
+
+  private void verifyConnectionIsDigitalWire(ConnectionValue connection)
       throws TypeMismatchException {
     if (!connection.getType().equals(digitalWireType)) {
       throw new TypeMismatchException(digitalWireType, connection.getType());
     }
   }
-  
-  private void verify_PortIsDigitalIO(PortValue port) 
+
+  private void verifyPortIsDigitalOut(PortValue port)
       throws TypeMismatchException {
-    if (!(port.getType().equals(digitalInType) 
-        || port.getType().equals(digitalOutType))) {
-      // TODO this exception is inaccurate because there are two valid types
-      throw new TypeMismatchException(digitalInType, port.getType()); 
+    if (!port.getType().equals(digitalOutType)) {
+      throw new TypeMismatchException(digitalOutType, port.getType());
     }
   }
-  
-  private void connectToNet(PortValue port, Net net){
+
+  private void verifyPortIsDigitalIn(PortValue port)
+      throws TypeMismatchException {
+    if (!port.getType().equals(digitalInType)) {
+      throw new TypeMismatchException(digitalInType, port.getType());
+    }
+  }
+
+  private void connectToNet(PortValue port, Net net) {
     net.addPort(port);
     connectedNet.put(port, net);
   }
