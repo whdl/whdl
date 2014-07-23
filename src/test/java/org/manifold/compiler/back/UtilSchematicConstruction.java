@@ -22,6 +22,8 @@ import org.manifold.compiler.middle.SchematicException;
 // Utility class for quickly setting up Schematics in test cases.
 public class UtilSchematicConstruction {
 
+  private static boolean setUp = false;
+  
   public static PortTypeValue digitalInPortType;
   public static PortTypeValue digitalOutPortType;
 
@@ -68,6 +70,8 @@ public class UtilSchematicConstruction {
     outputPinType = new NodeTypeValue(noTypeAttributes, outputPinTypePorts);
 
     digitalWireType = new ConnectionType(noTypeAttributes);
+    
+    setUp = true;
   }
 
   /**
@@ -80,6 +84,9 @@ public class UtilSchematicConstruction {
   public static Schematic instantiateSchematic(String name,
       boolean includePortTypes, boolean includeNodeTypes,
       boolean includeConnectionTypes) throws MultipleDefinitionException {
+    if (!setUp) {
+      setupIntermediateTypes();
+    }
     Schematic s = new Schematic(name);
     if (includePortTypes) {
       s.addPortType("digitalIn", digitalInPortType);
