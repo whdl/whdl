@@ -6,24 +6,36 @@ import java.util.Map.Entry;
 import org.manifold.compiler.NodeValue;
 import org.manifold.compiler.PortTypeValue;
 import org.manifold.compiler.PortValue;
+import org.manifold.compiler.UndeclaredIdentifierException;
+import org.manifold.compiler.UndefinedBehaviourError;
 import org.manifold.compiler.middle.Schematic;
 
-public class DRC_NoUnconnectedInputs extends DesignRuleCheck {
+public class NoUnconnectedInputsCheck extends Check {
 
   private Schematic schematic;
   private Netlist netlist;
   private PortTypeValue digitalInType;
   private PortTypeValue digitalOutType;
 
-  public DRC_NoUnconnectedInputs(Schematic schematic, Netlist netlist) {
+  public NoUnconnectedInputsCheck(Schematic schematic, Netlist netlist) {
     this.schematic = schematic;
     this.netlist = netlist;
-    this.digitalInType = netlist.getDigitalInType();
-    this.digitalOutType = netlist.getDigitalOutType();
+    try {
+      this.digitalInType = schematic.getPortType("digitalIn");
+    } catch (UndeclaredIdentifierException e) {
+      throw new UndefinedBehaviourError(
+          "schematic does not define digitalIn port type");
+    }
+    try {
+      this.digitalOutType = schematic.getPortType("digitalOut");
+    } catch (UndeclaredIdentifierException e) {
+      throw new UndefinedBehaviourError(
+          "schematic does not define digitalOut port type");
+    }
   }
 
   @Override
-  public void check() {
+  protected void verify() {
     Map<String, Net> allNets = netlist.getNets();
     boolean noUnconnectedInputs = true;
     for (Entry<String, NodeValue> nodeEntry : schematic.getNodes().entrySet()) {

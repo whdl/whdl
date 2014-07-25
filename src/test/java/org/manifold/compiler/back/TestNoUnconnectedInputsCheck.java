@@ -13,14 +13,14 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 import org.manifold.compiler.ConnectionValue;
 import org.manifold.compiler.NodeValue;
-import org.manifold.compiler.back.digital.DRC_NoUnconnectedInputs;
-import org.manifold.compiler.back.digital.DesignRuleCheck;
+import org.manifold.compiler.back.digital.Check;
 import org.manifold.compiler.back.digital.Netlist;
+import org.manifold.compiler.back.digital.NoUnconnectedInputsCheck;
 import org.manifold.compiler.middle.Schematic;
 import org.manifold.compiler.middle.SchematicException;
 
 @RunWith(Parameterized.class)
-public class TestDRC_NoUnconnectedInputs {
+public class TestNoUnconnectedInputsCheck {
 
   @BeforeClass
   public static void setupClass() {
@@ -96,7 +96,7 @@ public class TestDRC_NoUnconnectedInputs {
   private Netlist netlist;
   private boolean expectedCheckResult;
 
-  public TestDRC_NoUnconnectedInputs(Schematic schematic, Netlist netlist, 
+  public TestNoUnconnectedInputsCheck(Schematic schematic, Netlist netlist, 
       Boolean expectedCheckResult) {
     this.schematic = schematic;
     this.netlist = netlist;
@@ -105,9 +105,8 @@ public class TestDRC_NoUnconnectedInputs {
 
   @Test
   public void testDRC() {
-    DesignRuleCheck drc = new DRC_NoUnconnectedInputs(schematic, netlist);
-    drc.check();
-    boolean actualCheckResult = drc.passed();
+    Check drc = new NoUnconnectedInputsCheck(schematic, netlist);
+    boolean actualCheckResult = drc.run();
     assertEquals(expectedCheckResult, actualCheckResult);
   }
 
