@@ -2,14 +2,14 @@ package org.manifold.compiler.back.digital;
 
 import org.manifold.compiler.UndefinedBehaviourError;
 
-public abstract class DesignRuleCheck {
-  public abstract void check();
+public abstract class Check {
+  protected abstract void verify();
 
   protected Boolean result = null;
 
-  public boolean passed() {
+  public boolean run() {
     if (result == null) {
-      check();
+      verify();
       // ensure that the check set a result
       if (result == null) {
         throw new UndefinedBehaviourError(
