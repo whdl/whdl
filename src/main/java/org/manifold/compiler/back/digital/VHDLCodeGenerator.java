@@ -12,15 +12,17 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
 import org.manifold.compiler.BooleanValue;
 import org.manifold.compiler.NodeTypeValue;
 import org.manifold.compiler.NodeValue;
+import org.manifold.compiler.PortTypeValue;
 import org.manifold.compiler.PortValue;
 import org.manifold.compiler.TypeMismatchException;
 import org.manifold.compiler.UndeclaredAttributeException;
 import org.manifold.compiler.UndeclaredIdentifierException;
+import org.manifold.compiler.UndefinedBehaviourError;
 import org.manifold.compiler.middle.Schematic;
 
 public class VHDLCodeGenerator {
@@ -39,12 +41,16 @@ public class VHDLCodeGenerator {
   // name of VHDL architecture corresponding to generated entities
   private String architecture = "MANIFOLD";
 
+  private PortTypeValue inputPortType = null;
+  private PortTypeValue outputPortType = null;
+  
   private NodeTypeValue inputPinType = null;
   private NodeTypeValue outputPinType = null;
 
   private NodeTypeValue registerType = null;
 
   public VHDLCodeGenerator(Schematic schematic) {
+    this.schematic = schematic;
     // by default, output to current working directory
     this.outputDirectory = Paths.get("").toAbsolutePath().toString();
   }
@@ -91,6 +97,8 @@ public class VHDLCodeGenerator {
     // get information from the schematic about which node types to use
 
     try {
+      inputPortType = schematic.getPortType("digitalIn");
+      outputPortType = schematic.getPortType("digitalOut");
       inputPinType = schematic.getNodeType("inputPin");
       outputPinType = schematic.getNodeType("outputPin");
       registerType = schematic.getNodeType("register");
@@ -224,6 +232,10 @@ public class VHDLCodeGenerator {
 
   private String generatePortDeclarations(Set<Net> inputNets,
       Set<Net> outputNets) {
+    // TODO this code assumes that the nodes driving I/O ports
+    // are inputPin(s)/outputPin(s). make this more general
+    // so that any node (i.e. one from a higher-level entity)
+    // can be used to instantiate a uniquely-named I/O pin
     StringBuilder decl = new StringBuilder();
     if (inputNets.size() > 0 || outputNets.size() > 0) {
       decl.append("port (");
@@ -291,7 +303,8 @@ public class VHDLCodeGenerator {
         NodeValue node = p.getParent();
         if (node.getType().equals(outputPinType)) {
           String outputName = schematic.getNodeName(node);
-          log.debug("net '" + netName + "' maps to output '" + outputName + "'");
+          log.debug("net '" + netName + "' maps to output '" 
+              + outputName + "'");
           stmts.append(outputName).append(" <= ").append(netName).append(";")
               .append(newline);
         }
@@ -386,7 +399,8 @@ public class VHDLCodeGenerator {
         err(e.getMessage());
       }
     } else {
-      err("could not generate code for node '" + nodeName + "' of unknown type");
+      err("could not generate code for node '" + nodeName 
+            + "' of unknown type");
     }
     return stmts.toString();
   }
@@ -401,7 +415,12 @@ public class VHDLCodeGenerator {
 
   private NodeValue getDriver(Net net) {
     // PRECONDITION: DRC has verified that exactly one digitalOut is connected
-    return null; // TODO
+    for (PortValue port : net.getConnectedPorts()) {
+      if (port.getType() == outputPortType) {
+        return port.getParent();
+      }
+    }
+    throw new UndefinedBehaviourError("undriven net '" + net.getName() + "'");
   }
 
 }
