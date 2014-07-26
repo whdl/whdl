@@ -56,7 +56,6 @@ public class VHDLCodeGenerator {
   }
 
   private void err(String message) {
-    log.error(message);
     throw new CodeGenerationError(message);
   }
 
@@ -155,6 +154,8 @@ public class VHDLCodeGenerator {
     Map<String, Map<String, NodeValue>> components = new HashMap<>();
 
     generateEntity(entityName, inputNets, outputNets, currentNodes, components);
+    
+    log.info("Finished generating top-level entity " + entityName);
   }
 
   private void generateEntity(String entityName, Set<Net> inputNets,
@@ -228,6 +229,8 @@ public class VHDLCodeGenerator {
     } catch (IOException e) {
       err(e.getMessage());
     }
+    
+    log.info("Finished generating entity " + entityName);
   }
 
   private String generatePortDeclarations(Set<Net> inputNets,
