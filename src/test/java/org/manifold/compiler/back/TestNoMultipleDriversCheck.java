@@ -13,14 +13,14 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 import org.manifold.compiler.ConnectionValue;
 import org.manifold.compiler.NodeValue;
-import org.manifold.compiler.back.digital.DRC_NoMultipleDrivers;
-import org.manifold.compiler.back.digital.DesignRuleCheck;
+import org.manifold.compiler.back.digital.Check;
 import org.manifold.compiler.back.digital.Netlist;
+import org.manifold.compiler.back.digital.NoMultipleDriversCheck;
 import org.manifold.compiler.middle.Schematic;
 import org.manifold.compiler.middle.SchematicException;
 
 @RunWith(Parameterized.class)
-public class TestDRC_NoMultipleDrivers {
+public class TestNoMultipleDriversCheck {
 
   @BeforeClass
   public static void setupClass() {
@@ -45,7 +45,7 @@ public class TestDRC_NoMultipleDrivers {
       case0.addConnection("in0_to_out0", in0_to_out0);
 
       Netlist netlist_case0 = new Netlist(case0);
-      Object[] case0_data = new Object[] { netlist_case0, true };
+      Object[] case0_data = new Object[] { case0, netlist_case0, true };
       testData.add(case0_data);
     }
     // END CASE 0
@@ -70,7 +70,7 @@ public class TestDRC_NoMultipleDrivers {
       case1.addConnection("in1_to_out0", in1_to_out0);
 
       Netlist netlist_case1 = new Netlist(case1);
-      Object[] case1_data = new Object[] { netlist_case1, false };
+      Object[] case1_data = new Object[] { case1, netlist_case1, false };
       testData.add(case1_data);
     }
     // END CASE 1
@@ -78,20 +78,21 @@ public class TestDRC_NoMultipleDrivers {
   }
 
   // test inputs
+  private Schematic schematic;
   private Netlist netlist;
   private boolean expectedCheckResult;
 
-  public TestDRC_NoMultipleDrivers(Netlist netlist, 
+  public TestNoMultipleDriversCheck(Schematic schematic, Netlist netlist, 
       Boolean expectedCheckResult) {
+    this.schematic = schematic;
     this.netlist = netlist;
     this.expectedCheckResult = expectedCheckResult;
   }
 
   @Test
   public void testDRC() {
-    DesignRuleCheck drc = new DRC_NoMultipleDrivers(netlist);
-    drc.check();
-    boolean actualCheckResult = drc.passed();
+    Check drc = new NoMultipleDriversCheck(schematic, netlist);
+    boolean actualCheckResult = drc.run();
     assertEquals(expectedCheckResult, actualCheckResult);
   }
 

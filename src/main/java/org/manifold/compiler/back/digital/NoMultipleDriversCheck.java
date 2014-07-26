@@ -4,22 +4,30 @@ import java.util.Map;
 
 import org.manifold.compiler.PortTypeValue;
 import org.manifold.compiler.PortValue;
+import org.manifold.compiler.UndeclaredIdentifierException;
+import org.manifold.compiler.UndefinedBehaviourError;
+import org.manifold.compiler.middle.Schematic;
 
 
-public class DRC_NoMultipleDrivers extends DesignRuleCheck {
+public class NoMultipleDriversCheck extends Check {
 
+  private Schematic schematic;
   private Netlist netlist;
-  private PortTypeValue digitalInType;
   private PortTypeValue digitalOutType;
 
-  public DRC_NoMultipleDrivers(Netlist netlist) {
+  public NoMultipleDriversCheck(Schematic schematic, Netlist netlist) {
+    this.schematic = schematic;
     this.netlist = netlist;
-    this.digitalInType = netlist.getDigitalInType();
-    this.digitalOutType = netlist.getDigitalOutType();
+    try {
+      this.digitalOutType = schematic.getPortType("digitalOut");
+    } catch (UndeclaredIdentifierException e) {
+      throw new UndefinedBehaviourError(
+          "schematic does not define digitalOut port type");
+    }
   }
 
   @Override
-  public void check() {
+  protected void verify() {
     System.err.println("expected digital out type = "
         + digitalOutType.toString());
     Map<String, Net> allNets = netlist.getNets();
@@ -47,6 +55,7 @@ public class DRC_NoMultipleDrivers extends DesignRuleCheck {
        * nets are multiply driven, and the ports that are driving them. This
        * will be useful when showing the user the results of DRC so they can
        * correct the design.
+       * This is described in Issue #131.
        */
     }
     this.result = noMultipleDrivers;
