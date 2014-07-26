@@ -172,7 +172,7 @@ public class VHDLCodeGenerator {
       // entity declaration
       writer.print("entity ");
       writer.print(escapeIdentifier(entityName));
-      writer.println("is");
+      writer.println(" is");
       // I/O ports come from I/O nets
       writer.println(generatePortDeclarations(inputNets, outputNets));
       writer.print("end entity ");
@@ -248,20 +248,19 @@ public class VHDLCodeGenerator {
       for (Net inNet : inputNets) {
         if (!first) {
           // terminate previous port
-          decl.append(";");
-          decl.append(newline);
+          decl.append(";").append(newline);
         }
+        first = false;
         NodeValue node = getDriver(inNet);
         String inputName = schematic.getNodeName(node);
-        decl.append(inputName);
-        decl.append(" : in STD_LOGIC");
+        decl.append(inputName).append(" : in STD_LOGIC");
       }
       for (Net outNet : outputNets) {
         if (!first) {
           // terminate previous port
-          decl.append(";");
-          decl.append(newline);
+          decl.append(";").append(newline);
         }
+        first = false;
         // look for the outputPin(s) driven by this net
         for (PortValue p : outNet.getConnectedPorts()) {
           NodeValue node = p.getParent();
