@@ -144,7 +144,7 @@ public class VHDLCodeGenerator {
           outputNets.add(outputNet);
         } else {
           // this is an internal node
-          currentNodes.put(escapeIdentifier(nodeName), node);
+          currentNodes.put(nodeName, node);
         }
       }
     } catch (UndeclaredIdentifierException e) {
@@ -349,7 +349,7 @@ public class VHDLCodeGenerator {
         boolean clockActiveHigh = ((BooleanValue) node
             .getAttribute("clockActiveHigh")).toBoolean();
 
-        String processName = "register_" + nodeName;
+        String processName = escapeIdentifier("register_" + nodeName);
         stmts.append(processName);
         stmts.append(": process (");
         // sensitivity list
@@ -367,7 +367,7 @@ public class VHDLCodeGenerator {
           stmts.append(sigOut).append(" <= ")
               .append(booleanToBit(initialValue)).append(";").append(newline);
           // clocked logic
-          stmts.append("elsif(");
+          stmts.append("elsif ");
           if (clockActiveHigh) {
             stmts.append("rising_edge(");
           } else {
@@ -379,7 +379,7 @@ public class VHDLCodeGenerator {
           stmts.append("end if;").append(newline);
         } else {
           // clocked logic
-          stmts.append("if (");
+          stmts.append("if ");
           if (clockActiveHigh) {
             stmts.append("rising_edge(");
           } else {
@@ -397,6 +397,7 @@ public class VHDLCodeGenerator {
               .append(newline);
           stmts.append("end if;").append(newline);
         }
+        stmts.append("end if;").append(newline);
         stmts.append("end process ").append(processName).append(";")
             .append(newline);
       } catch (UndeclaredIdentifierException | UndeclaredAttributeException e) {
