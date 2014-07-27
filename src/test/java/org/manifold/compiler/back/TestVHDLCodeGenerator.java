@@ -175,6 +175,102 @@ public class TestVHDLCodeGenerator {
   }
   
   @Test
+  public void testRegisterSignalGeneration() 
+      throws SchematicException, IOException {
+    // Create a schematic that breaks out all I/Os on a register.
+    Schematic schematic = UtilSchematicConstruction
+        .instantiateSchematic("test");
+    NodeValue clock = UtilSchematicConstruction.instantiateInputPin();
+    schematic.addNode("clock", clock);
+    NodeValue reset = UtilSchematicConstruction.instantiateInputPin();
+    schematic.addNode("reset", reset);
+    NodeValue in0 = UtilSchematicConstruction.instantiateInputPin();
+    schematic.addNode("in0", in0);
+    NodeValue out0 = UtilSchematicConstruction.instantiateOutputPin();
+    schematic.addNode("out0", out0);
+    // the important parameter for this register is the first one:
+    // the initial value is HIGH, or '1'.
+    NodeValue reg0 = UtilSchematicConstruction.instantiateRegister(
+        true, true, false, true);
+    schematic.addNode("reg0", reg0);
+    ConnectionValue nClock = UtilSchematicConstruction.instantiateWire(
+        clock.getPort("out"), reg0.getPort("clock"));
+    schematic.addConnection("nClock", nClock);
+    ConnectionValue nReset = UtilSchematicConstruction.instantiateWire(
+        reset.getPort("out"), reg0.getPort("reset"));
+    schematic.addConnection("nReset", nReset);
+    ConnectionValue nIn0 = UtilSchematicConstruction.instantiateWire(
+        in0.getPort("out"), reg0.getPort("in"));
+    schematic.addConnection("nIn0", nIn0);
+    ConnectionValue nOut0 = UtilSchematicConstruction.instantiateWire(
+        reg0.getPort("out"), out0.getPort("in"));
+    schematic.addConnection("nOut0", nOut0);
+
+    VHDLCodeGenerator codegen = new VHDLCodeGenerator(schematic);
+    File tempdir = folder.getRoot();
+    String temppath = tempdir.getAbsolutePath();
+    codegen.setOutputDirectory(temppath);
+    codegen.generateOutputProducts();
+
+    // open test.vhd
+    String testOutputFilename = temppath + "/test.vhd";
+    Path testOutputPath = Paths.get(testOutputFilename);
+    List<String> testLines = Files.readAllLines(testOutputPath);
+    // the signal corresponding to the register should be named after
+    // the net connected to the register's "out" port,
+    // needs to be declared somewhere in the architecture declarations
+    // (i.e. between "ARCHITECTURE" and "BEGIN"),
+    // and needs to have the correct initial value (" := '1'; ").
+    Pattern beginArchDecls = Pattern.compile(
+        "^\\s*architecture\\s+manifold", Pattern.CASE_INSENSITIVE);
+    Pattern endArchDecls = Pattern.compile(
+        "^\\s*begin", Pattern.CASE_INSENSITIVE);
+    Pattern regDecl = Pattern.compile(
+        "^\\s*signal\\s+\\\\\\w*nOut0\\\\\\s*:\\s*std_logic");
+    Pattern regInit = Pattern.compile(
+        "\\s*:=\\s*'1'\\s*;");
+    boolean foundArchDecls = false;
+    boolean scanningArchDecls = false;
+    boolean foundRegDecl = false;
+    String capturedRegDecl = "";
+    boolean foundCorrectInitializer = false;
+    for (String line : testLines) {
+      if (scanningArchDecls) {
+        Matcher mEndArchDecls = endArchDecls.matcher(line);
+        if (mEndArchDecls.find()) {
+          scanningArchDecls = false;
+          break;
+        }
+        Matcher mRegDecl = regDecl.matcher(line);
+        if (mRegDecl.find()) {
+          if (foundRegDecl) {
+            fail("multiple register signal declarations");
+          }
+          foundRegDecl = true;
+          capturedRegDecl = line;
+          // check initializer
+          Matcher mRegInit = regInit.matcher(line);
+          if (mRegInit.find()) {
+            foundCorrectInitializer = true;
+          }
+        }
+      } else {
+        Matcher mBeginArchDecls = beginArchDecls.matcher(line);
+        if (mBeginArchDecls.find()) {
+          foundArchDecls = true;
+          scanningArchDecls = true;
+        }
+      }
+    }
+    // collect results
+    assertTrue("no architecture declaration section present"
+        +" in generated code", foundArchDecls);
+    assertTrue("no register signal declaration found", foundRegDecl);
+    assertTrue("register signal declaration has wrong initializer: "
+        + capturedRegDecl, foundCorrectInitializer);
+  }
+  
+  @Test
   public void testNonExistentOutputDirectoryThrowsException() 
       throws SchematicException {
     // Establish a simple demo schematic
