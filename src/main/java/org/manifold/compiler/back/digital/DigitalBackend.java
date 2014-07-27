@@ -96,13 +96,29 @@ public class DigitalBackend {
         Schematic schematic 
             = UtilSchematicConstruction.instantiateSchematic("demo");
         
+        NodeValue clk = UtilSchematicConstruction.instantiateInputPin();
+        schematic.addNode("clk", clk);
+        NodeValue rst = UtilSchematicConstruction.instantiateInputPin();
+        schematic.addNode("rst", rst);
         NodeValue in0 = UtilSchematicConstruction.instantiateInputPin();
         schematic.addNode("in0", in0);
+        NodeValue reg0 = UtilSchematicConstruction.instantiateRegister(
+                false, true, false, true);
+        schematic.addNode("reg0", reg0);
         NodeValue out0 = UtilSchematicConstruction.instantiateOutputPin();
         schematic.addNode("out0", out0);
-        ConnectionValue in0_to_out0 = UtilSchematicConstruction.instantiateWire(
-            in0.getPort("out"), out0.getPort("in"));
-        schematic.addConnection("in0_to_out0", in0_to_out0);
+        ConnectionValue in0_to_reg0 = UtilSchematicConstruction.instantiateWire(
+            in0.getPort("out"), reg0.getPort("in"));
+        schematic.addConnection("in0_to_reg0", in0_to_reg0);
+        ConnectionValue clk_to_reg0 = UtilSchematicConstruction.instantiateWire(
+                clk.getPort("out"), reg0.getPort("clock"));
+        schematic.addConnection("clk_to_reg0", clk_to_reg0);
+        ConnectionValue rst_to_reg0 = UtilSchematicConstruction.instantiateWire(
+                rst.getPort("out"), reg0.getPort("reset"));
+        schematic.addConnection("rst_to_reg0", rst_to_reg0);
+        ConnectionValue reg0_to_out0 = UtilSchematicConstruction.instantiateWire(
+                reg0.getPort("out"), out0.getPort("in"));
+        schematic.addConnection("reg0_to_out0", reg0_to_out0);
         
         return schematic;
     }
