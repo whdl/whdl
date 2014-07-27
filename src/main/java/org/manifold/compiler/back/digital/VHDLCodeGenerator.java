@@ -193,6 +193,8 @@ public class VHDLCodeGenerator {
           signals.add(netlist.getConnectedNet(port));
         }
       }
+      // additionally add nets from top-level inputs
+      signals.addAll(inputNets);
       for (Net net : signals) {
         String netName = net.getName();
         log.debug("found net " + netName);
