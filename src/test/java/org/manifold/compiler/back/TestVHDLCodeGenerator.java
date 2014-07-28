@@ -270,6 +270,107 @@ public class TestVHDLCodeGenerator {
         + capturedRegDecl, foundCorrectInitializer);
   }
   
+  // TODO(murphy) tests for register process logic
+  // pay attention to which combinations of register parameters to check
+
+  @Test
+  public void testRegisterProcessGenerationAsynchronousReset() 
+      throws SchematicException, IOException {
+    // Create a schematic that breaks out all I/Os on a register.
+    Schematic schematic = UtilSchematicConstruction
+        .instantiateSchematic("test");
+    NodeValue clock = UtilSchematicConstruction.instantiateInputPin();
+    schematic.addNode("clock", clock);
+    NodeValue reset = UtilSchematicConstruction.instantiateInputPin();
+    schematic.addNode("reset", reset);
+    NodeValue in0 = UtilSchematicConstruction.instantiateInputPin();
+    schematic.addNode("in0", in0);
+    NodeValue out0 = UtilSchematicConstruction.instantiateOutputPin();
+    schematic.addNode("out0", out0);
+    // the important parameter for this register is the first one:
+    // the initial value is HIGH, or '1'.
+    NodeValue reg0 = UtilSchematicConstruction.instantiateRegister(
+        true, true, true, true);
+    schematic.addNode("reg0", reg0);
+    ConnectionValue nClock = UtilSchematicConstruction.instantiateWire(
+        clock.getPort("out"), reg0.getPort("clock"));
+    schematic.addConnection("nClock", nClock);
+    ConnectionValue nReset = UtilSchematicConstruction.instantiateWire(
+        reset.getPort("out"), reg0.getPort("reset"));
+    schematic.addConnection("nReset", nReset);
+    ConnectionValue nIn0 = UtilSchematicConstruction.instantiateWire(
+        in0.getPort("out"), reg0.getPort("in"));
+    schematic.addConnection("nIn0", nIn0);
+    ConnectionValue nOut0 = UtilSchematicConstruction.instantiateWire(
+        reg0.getPort("out"), out0.getPort("in"));
+    schematic.addConnection("nOut0", nOut0);
+
+    VHDLCodeGenerator codegen = new VHDLCodeGenerator(schematic);
+    File tempdir = folder.getRoot();
+    String temppath = tempdir.getAbsolutePath();
+    codegen.setOutputDirectory(temppath);
+    codegen.generateOutputProducts();
+
+    // open test.vhd
+    String testOutputFilename = temppath + "/test.vhd";
+    Path testOutputPath = Paths.get(testOutputFilename);
+    List<String> testLines = Files.readAllLines(testOutputPath);
+    
+    // For an asynchronous reset, we need to see the conditional for the
+    // reset signal before the conditional for the clock edge
+    // (which is rising edge here)
+    Pattern clockStmt = Pattern.compile("if.*rising_edge",
+        Pattern.CASE_INSENSITIVE);
+    Pattern resetStmt = Pattern.compile("if.*nReset",
+        Pattern.CASE_INSENSITIVE);
+    Pattern processBegin = Pattern.compile(":\\s*process",
+        Pattern.CASE_INSENSITIVE);
+    Pattern processEnd = Pattern.compile("end\\s*process",
+        Pattern.CASE_INSENSITIVE);
+    boolean foundProcess = false;
+    boolean scanningProcess = false;
+    int lineNumber = 0;
+    // line numbers on which we have found statements
+    int lineClockStmt = 0;
+    int lineResetStmt = 0;
+    for (String line : testLines) {
+      ++lineNumber;
+      if (scanningProcess) {
+        Matcher mProcessEnd = processEnd.matcher(line);
+        if (mProcessEnd.find()) {
+          scanningProcess = false;
+          break;
+        }
+        Matcher mClockStmt = clockStmt.matcher(line);
+        if (mClockStmt.find()) {
+          if (lineClockStmt != 0) {
+            fail("found multiple clock statements");
+          }
+          lineClockStmt = lineNumber;
+        }
+        Matcher mResetStmt = resetStmt.matcher(line);
+        if (mResetStmt.find()) {
+          if (lineResetStmt != 0) {
+            fail("found multiple reset statements");
+          }
+          lineResetStmt = lineNumber;
+        }
+      } else {
+        Matcher mProcessBegin = processBegin.matcher(line);
+        if (mProcessBegin.find()) {
+          foundProcess = true;
+          scanningProcess = true;
+        }
+      }
+    }
+    assertTrue("no process block present in generated code", foundProcess);
+    assertTrue("no clock statement found", lineClockStmt != 0);
+    assertTrue("no reset statement found", lineResetStmt != 0);
+    // check the order in which these statements were found
+    assertTrue("wrong statement order for asynchronous reset",
+        lineResetStmt < lineClockStmt);
+  }
+  
   @Test
   public void testNonExistentOutputDirectoryThrowsException() 
       throws SchematicException {
