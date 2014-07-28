@@ -1,8 +1,12 @@
 package org.manifold.compiler.back.digital;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.Option;
+import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.log4j.ConsoleAppender;
@@ -69,15 +73,33 @@ public class DigitalBackend {
         }
     }
     
+    boolean noChecks = false;
+    @SuppressWarnings("static-access")
+    private void createOptionNoChecks() {
+      Option noChecks = OptionBuilder.withLongOpt("no-checks")
+          .withDescription(
+              "do not run design checks "
+              + "(may result in incorrect code generation)"
+              ).create();
+      options.addOption(noChecks);
+    }
+    private void collectOptionNoChecks(CommandLine cmd) {
+      if (cmd.hasOption("no-checks")) {
+        noChecks = true;
+      }
+    }
+    
     private void createOptionDefinitions() {
         options = new Options();
         createOptionTargetHDL();
         createOptionOutputDirectory();
+        createOptionNoChecks();
     }
     
     private void collectOptions(CommandLine cmd) {
         collectOptionTargetHDL(cmd);
         collectOptionOutputDirectory(cmd);
+        collectOptionNoChecks(cmd);
     }
     
     public DigitalBackend(String[] args) throws ParseException {
@@ -131,6 +153,9 @@ public class DigitalBackend {
             VHDLCodeGenerator vhdlGen = new VHDLCodeGenerator(schematic);
             if (outputDirectory != null){
                 vhdlGen.setOutputDirectory(outputDirectory);
+            }
+            if (noChecks) {
+              vhdlGen.setRunChecks(false);
             }
             vhdlGen.generateOutputProducts();
         } // end case VHDL

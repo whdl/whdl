@@ -3,6 +3,14 @@ package org.manifold.compiler.back.digital;
 import org.manifold.compiler.UndefinedBehaviourError;
 
 public abstract class Check {
+  private String name;
+  public String getName() {
+    return name;
+  }
+  public Check(String name) {
+    this.name = name;
+  }
+  
   protected abstract void verify();
 
   protected Boolean result = null;

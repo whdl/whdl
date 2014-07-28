@@ -6,8 +6,10 @@ import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -33,9 +35,13 @@ public class VHDLCodeGenerator {
   private Netlist netlist = null;
 
   private String outputDirectory;
-
   public void setOutputDirectory(String dir) {
     this.outputDirectory = dir;
+  }
+  
+  private boolean runChecks = true;
+  public void setRunChecks(boolean run) {
+    this.runChecks = run;
   }
 
   // name of VHDL architecture corresponding to generated entities
@@ -74,6 +80,12 @@ public class VHDLCodeGenerator {
     }
   }
 
+  private List<Check> buildStandardChecks() {
+    List<Check> checks = new ArrayList<Check>();
+    checks.add(new NoMultipleDriversCheck(schematic, netlist));
+    return checks;
+  }
+  
   public void generateOutputProducts() {
     // check if directory exists
     Path outDir = Paths.get(outputDirectory);
@@ -105,6 +117,38 @@ public class VHDLCodeGenerator {
       err(e.getMessage());
     }
 
+    if (runChecks) {
+      log.info("constructing design checklist");
+      // checks we always run
+      List<Check> checks = buildStandardChecks();
+      int numChecks = checks.size();
+      int successes = 0;
+      int failures = 0;
+      log.info(Integer.toString(numChecks) + " checks to run");
+      for (Check check : checks) {
+        log.info("running check: " + check.getName());
+        boolean result = check.run();
+        if (result) {
+          ++successes;
+          log.info("check passed: " + check.getName());
+        } else {
+          ++failures;
+          log.error("check failed: " + check.getName());
+        }
+        log.info("check summary: "
+            + Integer.toString(successes) + "/" + Integer.toString(numChecks)
+            + " checks successful, "
+            + Integer.toString(failures) + "/" + Integer.toString(numChecks)
+            + " checks failed");
+        // if there were any failures, abort
+        if (failures > 0) {
+          err("design check failed");
+        }
+      }
+    } else {
+      log.warn("skipping all design checks");
+    }
+    
     // we don't support multiple output files yet, but we set up
     // the "hierarchical elaboration" method now so that when we do,
     // this will work with minimal effort
@@ -117,6 +161,7 @@ public class VHDLCodeGenerator {
     // at a lower level)
 
     String entityName = schematic.getName();
+    log.info("generating HDL for schematic '" + entityName + "'");
     Set<Net> inputNets = new HashSet<>();
     Set<Net> outputNets = new HashSet<>();
     Map<String, NodeValue> currentNodes = new HashMap<>();

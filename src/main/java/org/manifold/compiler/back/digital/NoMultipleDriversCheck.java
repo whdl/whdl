@@ -16,6 +16,7 @@ public class NoMultipleDriversCheck extends Check {
   private PortTypeValue digitalOutType;
 
   public NoMultipleDriversCheck(Schematic schematic, Netlist netlist) {
+    super("no multiple drivers");
     this.schematic = schematic;
     this.netlist = netlist;
     try {
