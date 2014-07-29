@@ -54,6 +54,9 @@ public class VHDLCodeGenerator {
   private NodeTypeValue outputPinType = null;
 
   private NodeTypeValue registerType = null;
+  private NodeTypeValue andType = null;
+  private NodeTypeValue orType = null;
+  private NodeTypeValue notType = null;
 
   public VHDLCodeGenerator(Schematic schematic) {
     this.schematic = schematic;
@@ -113,8 +116,13 @@ public class VHDLCodeGenerator {
       inputPinType = schematic.getNodeType("inputPin");
       outputPinType = schematic.getNodeType("outputPin");
       registerType = schematic.getNodeType("register");
+      andType = schematic.getNodeType("and");
+      orType = schematic.getNodeType("or");
+      notType = schematic.getNodeType("not");
     } catch (UndeclaredIdentifierException e) {
-      err(e.getMessage());
+      err("could not find required digital design type '"
+          + e.getIdentifier() +"'; schematic version mismatch or "
+          + " not a digital schematic");
     }
 
     if (runChecks) {
@@ -446,6 +454,46 @@ public class VHDLCodeGenerator {
         stmts.append("end process ").append(processName).append(";")
             .append(newline);
       } catch (UndeclaredIdentifierException | UndeclaredAttributeException e) {
+        err(e.getMessage());
+      }
+    } else if (node.getType().equals(andType)) {
+      // out <= (in0 AND in1);
+      try{
+        String sigIn0 = escapeIdentifier(netlist.getConnectedNet(
+            node.getPort("in0")).getName());
+        String sigIn1 = escapeIdentifier(netlist.getConnectedNet(
+            node.getPort("in1")).getName());
+        String sigOut = escapeIdentifier(netlist.getConnectedNet(
+            node.getPort("out")).getName());
+        stmts.append(sigOut).append(" <= ").append(sigIn0).append(" AND ")
+            .append(sigIn1).append(";").append(newline);
+      } catch (UndeclaredIdentifierException e) {
+        err(e.getMessage());
+      }
+    } else if (node.getType().equals(orType)) {
+      // out <= (in0 OR in1);
+      try{
+        String sigIn0 = escapeIdentifier(netlist.getConnectedNet(
+            node.getPort("in0")).getName());
+        String sigIn1 = escapeIdentifier(netlist.getConnectedNet(
+            node.getPort("in1")).getName());
+        String sigOut = escapeIdentifier(netlist.getConnectedNet(
+            node.getPort("out")).getName());
+        stmts.append(sigOut).append(" <= (").append(sigIn0).append(" OR ")
+            .append(sigIn1).append(");").append(newline);
+      } catch (UndeclaredIdentifierException e) {
+        err(e.getMessage());
+      }
+    } else if (node.getType().equals(notType)) {
+      // out <= (NOT in);
+      try{
+        String sigIn = escapeIdentifier(netlist.getConnectedNet(
+            node.getPort("in")).getName());
+        String sigOut = escapeIdentifier(netlist.getConnectedNet(
+            node.getPort("out")).getName());
+        stmts.append(sigOut).append(" <= (NOT ").append(sigIn)
+            .append(");").append(newline);
+      } catch (UndeclaredIdentifierException e) {
         err(e.getMessage());
       }
     } else {

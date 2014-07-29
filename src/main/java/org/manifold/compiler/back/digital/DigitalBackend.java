@@ -118,29 +118,70 @@ public class DigitalBackend {
         Schematic schematic 
             = UtilSchematicConstruction.instantiateSchematic("demo");
         
-        NodeValue clk = UtilSchematicConstruction.instantiateInputPin();
-        schematic.addNode("clk", clk);
-        NodeValue rst = UtilSchematicConstruction.instantiateInputPin();
-        schematic.addNode("rst", rst);
-        NodeValue in0 = UtilSchematicConstruction.instantiateInputPin();
-        schematic.addNode("in0", in0);
-        NodeValue reg0 = UtilSchematicConstruction.instantiateRegister(
-                false, true, false, true);
-        schematic.addNode("reg0", reg0);
-        NodeValue out0 = UtilSchematicConstruction.instantiateOutputPin();
-        schematic.addNode("out0", out0);
-        ConnectionValue in0_to_reg0 = UtilSchematicConstruction.instantiateWire(
-            in0.getPort("out"), reg0.getPort("in"));
-        schematic.addConnection("in0_to_reg0", in0_to_reg0);
-        ConnectionValue clk_to_reg0 = UtilSchematicConstruction.instantiateWire(
-                clk.getPort("out"), reg0.getPort("clock"));
-        schematic.addConnection("clk_to_reg0", clk_to_reg0);
-        ConnectionValue rst_to_reg0 = UtilSchematicConstruction.instantiateWire(
-                rst.getPort("out"), reg0.getPort("reset"));
-        schematic.addConnection("rst_to_reg0", rst_to_reg0);
-        ConnectionValue reg0_to_out0 = UtilSchematicConstruction.instantiateWire(
-                reg0.getPort("out"), out0.getPort("in"));
-        schematic.addConnection("reg0_to_out0", reg0_to_out0);
+        NodeValue a = UtilSchematicConstruction.instantiateInputPin();
+        NodeValue b = UtilSchematicConstruction.instantiateInputPin();
+        NodeValue c = UtilSchematicConstruction.instantiateOutputPin();
+        
+        NodeValue notA = UtilSchematicConstruction.instantiateNot();
+        NodeValue notB = UtilSchematicConstruction.instantiateNot();
+        NodeValue notAandB = UtilSchematicConstruction.instantiateAnd();
+        NodeValue AandnotB = UtilSchematicConstruction.instantiateAnd();
+        NodeValue xorOr = UtilSchematicConstruction.instantiateOr();
+        
+        schematic.addNode("a", a);
+        schematic.addNode("b", b);
+        schematic.addNode("c", c);
+        schematic.addNode("notA", notA);
+        schematic.addNode("notB", notB);
+        schematic.addNode("notAandB", notAandB);
+        schematic.addNode("AandnotB", AandnotB);
+        schematic.addNode("xorOr", xorOr);
+        
+        ConnectionValue aToNotA = UtilSchematicConstruction.instantiateWire(
+            a.getPort("out"),
+            notA.getPort("in")
+            );
+        ConnectionValue bToNotB = UtilSchematicConstruction.instantiateWire(
+            b.getPort("out"),
+            notB.getPort("in")
+            );
+        ConnectionValue aToaAndNotb = UtilSchematicConstruction.instantiateWire(
+            a.getPort("out"),
+            AandnotB.getPort("in0")
+            );
+        ConnectionValue bToNotaAndb= UtilSchematicConstruction.instantiateWire(
+            b.getPort("out"),
+            notAandB.getPort("in1")
+            );
+        ConnectionValue notAtoNotaAndb = UtilSchematicConstruction.instantiateWire(
+            notA.getPort("out"),
+            notAandB.getPort("in0")
+            );
+        ConnectionValue notBtoaAndNotb = UtilSchematicConstruction.instantiateWire(
+            notB.getPort("out"),
+            AandnotB.getPort("in1")
+            );
+        ConnectionValue notaAndbToOr = UtilSchematicConstruction.instantiateWire(
+            notAandB.getPort("out"),
+            xorOr.getPort("in0")
+            );
+        ConnectionValue aAndNotbToOr = UtilSchematicConstruction.instantiateWire(
+            AandnotB.getPort("out"),
+            xorOr.getPort("in1")
+            );
+        ConnectionValue orToC = UtilSchematicConstruction.instantiateWire(
+            xorOr.getPort("out"),
+            c.getPort("in")
+            );
+        schematic.addConnection("a1", aToNotA);
+        schematic.addConnection("b1", bToNotB);
+        schematic.addConnection("a2", aToaAndNotb);
+        schematic.addConnection("b2", bToNotaAndb);
+        schematic.addConnection("notA1", notAtoNotaAndb);
+        schematic.addConnection("notB1", notBtoaAndNotb);
+        schematic.addConnection("notA2", notaAndbToOr);
+        schematic.addConnection("notB2", aAndNotbToOr);
+        schematic.addConnection("c1", orToC);
         
         return schematic;
     }
