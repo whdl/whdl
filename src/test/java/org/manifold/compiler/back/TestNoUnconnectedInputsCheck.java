@@ -40,13 +40,13 @@ public class TestNoUnconnectedInputsCheck {
       case0.addNode("in0", in0);
       NodeValue out0 = UtilSchematicConstruction.instantiateOutputPin();
       case0.addNode("out0", out0);
-      ConnectionValue in0_to_out0 = UtilSchematicConstruction.instantiateWire(
+      ConnectionValue in0ToOut0 = UtilSchematicConstruction.instantiateWire(
           in0.getPort("out"), out0.getPort("in"));
-      case0.addConnection("in0_to_out0", in0_to_out0);
+      case0.addConnection("in0_to_out0", in0ToOut0);
 
-      Netlist netlist_case0 = new Netlist(case0);
-      Object[] case0_data = new Object[] { case0, netlist_case0, true };
-      testData.add(case0_data);
+      Netlist netlistCase0 = new Netlist(case0);
+      Object[] case0Data = new Object[] { case0, netlistCase0, true };
+      testData.add(case0Data);
     }
     // END CASE 0
     
@@ -62,16 +62,16 @@ public class TestNoUnconnectedInputsCheck {
       case1.addNode("in1", in1);
       NodeValue out0 = UtilSchematicConstruction.instantiateOutputPin();
       case1.addNode("out0", out0);
-      ConnectionValue in0_to_out0 = UtilSchematicConstruction.instantiateWire(
+      ConnectionValue in0ToOut0 = UtilSchematicConstruction.instantiateWire(
           in0.getPort("out"), out0.getPort("in"));
-      case1.addConnection("in0_to_out0", in0_to_out0);
-      ConnectionValue in1_to_out0 = UtilSchematicConstruction.instantiateWire(
+      case1.addConnection("in0_to_out0", in0ToOut0);
+      ConnectionValue in1ToOut0 = UtilSchematicConstruction.instantiateWire(
           in1.getPort("out"), out0.getPort("in"));
-      case1.addConnection("in1_to_out0", in1_to_out0);
+      case1.addConnection("in1_to_out0", in1ToOut0);
 
-      Netlist netlist_case1 = new Netlist(case1);
-      Object[] case1_data = new Object[] { case1, netlist_case1, true };
-      testData.add(case1_data);
+      Netlist netlistCase1 = new Netlist(case1);
+      Object[] case1Data = new Object[] { case1, netlistCase1, true };
+      testData.add(case1Data);
     }
     // END CASE 1
     
@@ -83,9 +83,9 @@ public class TestNoUnconnectedInputsCheck {
       NodeValue out0 = UtilSchematicConstruction.instantiateOutputPin();
       case2.addNode("out0", out0);
       
-      Netlist netlist_case2 = new Netlist(case2);
-      Object[] case2_data = new Object[] { case2, netlist_case2, false };
-      testData.add(case2_data);
+      Netlist netlistCase2 = new Netlist(case2);
+      Object[] case2Data = new Object[] { case2, netlistCase2, false };
+      testData.add(case2Data);
     }
     // END CASE 2
     return testData;
