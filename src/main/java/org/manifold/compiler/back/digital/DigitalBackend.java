@@ -1,6 +1,9 @@
 package org.manifold.compiler.back.digital;
 
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.cli.CommandLine;
@@ -17,9 +20,13 @@ import org.apache.log4j.PatternLayout;
 import org.manifold.compiler.ConnectionValue;
 import org.manifold.compiler.NodeValue;
 import org.manifold.compiler.OptionError;
-import org.manifold.compiler.back.UtilSchematicConstruction;
+import org.manifold.compiler.UndefinedBehaviourError;
 import org.manifold.compiler.middle.Schematic;
 import org.manifold.compiler.middle.SchematicException;
+import org.manifold.compiler.middle.serialization.SchematicDeserializer;
+
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 public class DigitalBackend {
     
@@ -102,6 +109,8 @@ public class DigitalBackend {
         collectOptionNoChecks(cmd);
     }
     
+    private List<String> inputs;
+    
     public DigitalBackend(String[] args) throws ParseException {
         setupLogging();
         // set up options for command-line parsing
@@ -111,43 +120,30 @@ public class DigitalBackend {
         CommandLine cmd = parser.parse(options, args);
         // retrieve command-line options
         collectOptions(cmd);
-    }
-    
-    private Schematic createDemoSchematic() throws SchematicException {
-        // TODO remove this once schematic import from JSON is ready
-        Schematic schematic 
-            = UtilSchematicConstruction.instantiateSchematic("demo");
-        
-        NodeValue clk = UtilSchematicConstruction.instantiateInputPin();
-        schematic.addNode("clk", clk);
-        NodeValue rst = UtilSchematicConstruction.instantiateInputPin();
-        schematic.addNode("rst", rst);
-        NodeValue in0 = UtilSchematicConstruction.instantiateInputPin();
-        schematic.addNode("in0", in0);
-        NodeValue reg0 = UtilSchematicConstruction.instantiateRegister(
-                false, true, false, true);
-        schematic.addNode("reg0", reg0);
-        NodeValue out0 = UtilSchematicConstruction.instantiateOutputPin();
-        schematic.addNode("out0", out0);
-        ConnectionValue in0_to_reg0 = UtilSchematicConstruction.instantiateWire(
-            in0.getPort("out"), reg0.getPort("in"));
-        schematic.addConnection("in0_to_reg0", in0_to_reg0);
-        ConnectionValue clk_to_reg0 = UtilSchematicConstruction.instantiateWire(
-                clk.getPort("out"), reg0.getPort("clock"));
-        schematic.addConnection("clk_to_reg0", clk_to_reg0);
-        ConnectionValue rst_to_reg0 = UtilSchematicConstruction.instantiateWire(
-                rst.getPort("out"), reg0.getPort("reset"));
-        schematic.addConnection("rst_to_reg0", rst_to_reg0);
-        ConnectionValue reg0_to_out0 = UtilSchematicConstruction.instantiateWire(
-                reg0.getPort("out"), out0.getPort("in"));
-        schematic.addConnection("reg0_to_out0", reg0_to_out0);
-        
-        return schematic;
+        inputs = Arrays.asList(cmd.getArgs());
     }
     
     public void run() throws SchematicException {
-        // TODO read schematic from JSON
-        Schematic schematic = createDemoSchematic();
+        // TODO proper handling for multiple input files
+        // TODO handling of input schematic from memory
+        if (inputs.isEmpty()) {
+          log.warn("no input files, nothing to do");
+          return;
+        }
+        if (inputs.size() > 1) {
+          throw new UndefinedBehaviourError(
+              "cannot compile from multiple inputs");
+        }
+        SchematicDeserializer deserializer = new SchematicDeserializer();
+        FileReader inFile;
+        try {
+          inFile = new FileReader(inputs.get(0));
+        } catch (FileNotFoundException e) {
+          log.error("input file '" + inputs.get(0) + "' not found");
+          return;
+        }
+        JsonObject inputJson = new JsonParser().parse(inFile).getAsJsonObject();
+        Schematic schematic = deserializer.deserialize(inputJson);
         switch (targetHDL) {
         case VHDL: {
             VHDLCodeGenerator vhdlGen = new VHDLCodeGenerator(schematic);
