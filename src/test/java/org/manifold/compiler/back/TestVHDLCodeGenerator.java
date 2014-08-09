@@ -51,8 +51,8 @@ public class TestVHDLCodeGenerator {
   @Test
   public void testOutputProductPresent() throws SchematicException {
     // Connect an input pin straight across to an output pin.
-    Schematic schematic = UtilSchematicConstruction.
-            instantiateSchematic("test");
+    Schematic schematic = UtilSchematicConstruction
+            .instantiateSchematic("test");
     NodeValue in0 = UtilSchematicConstruction.instantiateInputPin();
     schematic.addNode("in0", in0);
     NodeValue out0 = UtilSchematicConstruction.instantiateOutputPin();
