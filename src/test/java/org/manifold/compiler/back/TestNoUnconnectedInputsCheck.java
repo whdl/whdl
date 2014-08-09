@@ -15,12 +15,12 @@ import org.manifold.compiler.ConnectionValue;
 import org.manifold.compiler.NodeValue;
 import org.manifold.compiler.back.digital.Check;
 import org.manifold.compiler.back.digital.Netlist;
-import org.manifold.compiler.back.digital.NoMultipleDriversCheck;
+import org.manifold.compiler.back.digital.NoUnconnectedInputsCheck;
 import org.manifold.compiler.middle.Schematic;
 import org.manifold.compiler.middle.SchematicException;
 
 @RunWith(Parameterized.class)
-public class TestNoMultipleDriversCheck {
+public class TestNoUnconnectedInputsCheck {
 
   @BeforeClass
   public static void setupClass() {
@@ -33,7 +33,7 @@ public class TestNoMultipleDriversCheck {
 
     // BEGIN CASE 0
     // |in0> --- <out0|
-    // no multiple drivers: TRUE
+    // no unconnected inputs: TRUE
     {
       Schematic case0 = UtilSchematicConstruction.instantiateSchematic("case0");
       NodeValue in0 = UtilSchematicConstruction.instantiateInputPin();
@@ -49,11 +49,11 @@ public class TestNoMultipleDriversCheck {
       testData.add(case0Data);
     }
     // END CASE 0
-
+    
     // BEGIN CASE 1
     // |in0> -+- <out0|
     // |in1> -|
-    // no multiple drivers: FALSE
+    // no unconnected inputs: TRUE
     {
       Schematic case1 = UtilSchematicConstruction.instantiateSchematic("case1");
       NodeValue in0 = UtilSchematicConstruction.instantiateInputPin();
@@ -70,10 +70,24 @@ public class TestNoMultipleDriversCheck {
       case1.addConnection("in1_to_out0", in1ToOut0);
 
       Netlist netlistCase1 = new Netlist(case1);
-      Object[] case1Data = new Object[] { case1, netlistCase1, false };
+      Object[] case1Data = new Object[] { case1, netlistCase1, true };
       testData.add(case1Data);
     }
     // END CASE 1
+    
+    // BEGIN CASE 2
+    // <out0|
+    // no unconnected inputs: FALSE
+    {
+      Schematic case2 = UtilSchematicConstruction.instantiateSchematic("case2");
+      NodeValue out0 = UtilSchematicConstruction.instantiateOutputPin();
+      case2.addNode("out0", out0);
+      
+      Netlist netlistCase2 = new Netlist(case2);
+      Object[] case2Data = new Object[] { case2, netlistCase2, false };
+      testData.add(case2Data);
+    }
+    // END CASE 2
     return testData;
   }
 
@@ -82,7 +96,7 @@ public class TestNoMultipleDriversCheck {
   private Netlist netlist;
   private boolean expectedCheckResult;
 
-  public TestNoMultipleDriversCheck(Schematic schematic, Netlist netlist,
+  public TestNoUnconnectedInputsCheck(Schematic schematic, Netlist netlist, 
       Boolean expectedCheckResult) {
     this.schematic = schematic;
     this.netlist = netlist;
@@ -91,7 +105,7 @@ public class TestNoMultipleDriversCheck {
 
   @Test
   public void testDRC() {
-    Check drc = new NoMultipleDriversCheck(schematic, netlist);
+    Check drc = new NoUnconnectedInputsCheck(schematic, netlist);
     boolean actualCheckResult = drc.run();
     assertEquals(expectedCheckResult, actualCheckResult);
   }

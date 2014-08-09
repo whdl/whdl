@@ -60,10 +60,10 @@ public class TestVHDLCodeGenerator {
     schematic.addNode("in0", in0);
     NodeValue out0 = UtilSchematicConstruction.instantiateOutputPin();
     schematic.addNode("out0", out0);
-    ConnectionValue in0_to_out0 = UtilSchematicConstruction.instantiateWire(
+    ConnectionValue in0ToOut0 = UtilSchematicConstruction.instantiateWire(
         in0.getPort("out"), out0.getPort("in"));
-    schematic.addConnection("in0_to_out0", in0_to_out0);
-
+    schematic.addConnection("in0_to_out0", in0ToOut0);
+    
     VHDLCodeGenerator codegen = new VHDLCodeGenerator(schematic);
     File tempdir = folder.getRoot();
     String temppath = tempdir.getAbsolutePath();
@@ -264,7 +264,7 @@ public class TestVHDLCodeGenerator {
     }
     // collect results
     assertTrue("no architecture declaration section present"
-        +" in generated code", foundArchDecls);
+        + " in generated code", foundArchDecls);
     assertTrue("no register signal declaration found", foundRegDecl);
     assertTrue("register signal declaration has wrong initializer: "
         + capturedRegDecl, foundCorrectInitializer);
@@ -381,9 +381,9 @@ public class TestVHDLCodeGenerator {
     schematic.addNode("in0", in0);
     NodeValue out0 = UtilSchematicConstruction.instantiateOutputPin();
     schematic.addNode("out0", out0);
-    ConnectionValue in0_to_out0 = UtilSchematicConstruction.instantiateWire(
+    ConnectionValue in0ToOut0 = UtilSchematicConstruction.instantiateWire(
         in0.getPort("out"), out0.getPort("in"));
-    schematic.addConnection("in0_to_out0", in0_to_out0);
+    schematic.addConnection("in0_to_out0", in0ToOut0);
 
     VHDLCodeGenerator codegen = new VHDLCodeGenerator(schematic);
     String currentDir = Paths.get("").toAbsolutePath().toString();

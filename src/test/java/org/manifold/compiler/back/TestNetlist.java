@@ -28,11 +28,11 @@ public class TestNetlist {
     Schematic sch = UtilSchematicConstruction.instantiateSchematic("case0");
     NodeValue in = UtilSchematicConstruction.instantiateInputPin();
     NodeValue out = UtilSchematicConstruction.instantiateOutputPin();
-    ConnectionValue in_to_out = UtilSchematicConstruction.instantiateWire(
+    ConnectionValue inToOut = UtilSchematicConstruction.instantiateWire(
         in.getPort("out"), out.getPort("in"));
     sch.addNode("in", in);
     sch.addNode("out", out);
-    sch.addConnection("in_to_out", in_to_out);
+    sch.addConnection("in_to_out", inToOut);
 
     Netlist netlist = new Netlist(sch);
   }
@@ -43,11 +43,11 @@ public class TestNetlist {
     Schematic sch = UtilSchematicConstruction.instantiateSchematic("case0");
     NodeValue in = UtilSchematicConstruction.instantiateInputPin();
     NodeValue out = UtilSchematicConstruction.instantiateOutputPin();
-    ConnectionValue in_to_out = UtilSchematicConstruction.instantiateWire(
+    ConnectionValue inToOut = UtilSchematicConstruction.instantiateWire(
         in.getPort("out"), out.getPort("in"));
     sch.addNode("in", in);
     sch.addNode("out", out);
-    sch.addConnection("in_to_out", in_to_out);
+    sch.addConnection("in_to_out", inToOut);
 
     Netlist netlist = new Netlist(sch);
 
@@ -55,9 +55,9 @@ public class TestNetlist {
     // there should be exactly one net
     assertEquals(1, nets.values().size());
     // and this net should contain both ports
-    Net n_in_to_out = (Net) nets.values().toArray()[0];
-    assertTrue(n_in_to_out.getConnectedPorts().contains(in.getPort("out")));
-    assertTrue(n_in_to_out.getConnectedPorts().contains(out.getPort("in")));
+    Net nInToOut = (Net) nets.values().toArray()[0];
+    assertTrue(nInToOut.getConnectedPorts().contains(in.getPort("out")));
+    assertTrue(nInToOut.getConnectedPorts().contains(out.getPort("in")));
   }
 
   @Test
@@ -66,20 +66,20 @@ public class TestNetlist {
     Schematic sch = UtilSchematicConstruction.instantiateSchematic("case0");
     NodeValue in = UtilSchematicConstruction.instantiateInputPin();
     NodeValue out = UtilSchematicConstruction.instantiateOutputPin();
-    ConnectionValue in_to_out = UtilSchematicConstruction.instantiateWire(
+    ConnectionValue inToOut = UtilSchematicConstruction.instantiateWire(
         in.getPort("out"), out.getPort("in"));
     sch.addNode("in", in);
     sch.addNode("out", out);
-    sch.addConnection("in_to_out", in_to_out);
+    sch.addConnection("in_to_out", inToOut);
 
     Netlist netlist = new Netlist(sch);
 
     // `in` and `out` should both be connected to the same net
-    Net n_in = netlist.getConnectedNet(in.getPort("out"));
-    assertNotNull(n_in);
-    Net n_out = netlist.getConnectedNet(out.getPort("in"));
-    assertNotNull(n_out);
-    assertEquals(n_in, n_out);
+    Net nIn = netlist.getConnectedNet(in.getPort("out"));
+    assertNotNull(nIn);
+    Net nOut = netlist.getConnectedNet(out.getPort("in"));
+    assertNotNull(nOut);
+    assertEquals(nIn, nOut);
   }
 
 }
