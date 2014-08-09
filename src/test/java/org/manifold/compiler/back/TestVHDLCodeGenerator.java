@@ -57,9 +57,9 @@ public class TestVHDLCodeGenerator {
     schematic.addNode("in0", in0);
     NodeValue out0 = UtilSchematicConstruction.instantiateOutputPin();
     schematic.addNode("out0", out0);
-    ConnectionValue in0_to_out0 = UtilSchematicConstruction.instantiateWire(
+    ConnectionValue in0ToOut0 = UtilSchematicConstruction.instantiateWire(
         in0.getPort("out"), out0.getPort("in"));
-    schematic.addConnection("in0_to_out0", in0_to_out0);
+    schematic.addConnection("in0_to_out0", in0ToOut0);
     
     VHDLCodeGenerator codegen = new VHDLCodeGenerator(schematic);
     File tempdir = folder.getRoot();
