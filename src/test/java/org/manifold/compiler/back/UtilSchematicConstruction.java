@@ -37,6 +37,15 @@ public class UtilSchematicConstruction {
   private static Map<String, PortTypeValue> registerTypePorts = new HashMap<>();
   private static NodeTypeValue registerType;
 
+  private static Map<String, PortTypeValue> andTypePorts = new HashMap<>();
+  private static NodeTypeValue andType;
+
+  private static Map<String, PortTypeValue> orTypePorts = new HashMap<>();
+  private static NodeTypeValue orType;
+
+  private static Map<String, PortTypeValue> notTypePorts = new HashMap<>();
+  private static NodeTypeValue notType;
+  
   private static Map<String, PortTypeValue> inputPinTypePorts = new HashMap<>();
   private static NodeTypeValue inputPinType;
 
@@ -64,6 +73,20 @@ public class UtilSchematicConstruction {
     registerTypePorts.put("reset", digitalInPortType);
     registerType = new NodeTypeValue(registerTypeAttributes, registerTypePorts);
 
+    andTypePorts.put("in0", digitalInPortType);
+    andTypePorts.put("in1", digitalInPortType);
+    andTypePorts.put("out", digitalOutPortType);
+    andType = new NodeTypeValue(noTypeAttributes, andTypePorts);
+    
+    orTypePorts.put("in0", digitalInPortType);
+    orTypePorts.put("in1", digitalInPortType);
+    orTypePorts.put("out", digitalOutPortType);
+    orType = new NodeTypeValue(noTypeAttributes, orTypePorts);
+    
+    notTypePorts.put("in", digitalInPortType);
+    notTypePorts.put("out", digitalOutPortType);
+    notType = new NodeTypeValue(noTypeAttributes, notTypePorts);
+    
     inputPinTypePorts.put("out", digitalOutPortType);
     inputPinType = new NodeTypeValue(noTypeAttributes, inputPinTypePorts);
 
@@ -96,6 +119,9 @@ public class UtilSchematicConstruction {
 
     if (includeNodeTypes) {
       s.addNodeType("register", registerType);
+      s.addNodeType("and", andType);
+      s.addNodeType("or", orType);
+      s.addNodeType("not", notType);
       s.addNodeType("inputPin", inputPinType);
       s.addNodeType("outputPin", outputPinType);
     }
@@ -134,6 +160,32 @@ public class UtilSchematicConstruction {
     NodeValue register = new NodeValue(registerType, registerAttrs,
         registerPortAttrs);
     return register;
+  }
+  
+  public static NodeValue instantiateAnd() throws SchematicException {
+    Map<String, Map<String, Value>> andPortAttrs = new HashMap<>();
+    andPortAttrs.put("in0", noAttributes);
+    andPortAttrs.put("in1", noAttributes);
+    andPortAttrs.put("out", noAttributes);
+    NodeValue andGate = new NodeValue(andType, noAttributes, andPortAttrs);
+    return andGate;
+  }
+  
+  public static NodeValue instantiateOr() throws SchematicException {
+    Map<String, Map<String, Value>> orPortAttrs = new HashMap<>();
+    orPortAttrs.put("in0", noAttributes);
+    orPortAttrs.put("in1", noAttributes);
+    orPortAttrs.put("out", noAttributes);
+    NodeValue orGate = new NodeValue(orType, noAttributes, orPortAttrs);
+    return orGate;
+  }
+  
+  public static NodeValue instantiateNot() throws SchematicException {
+    Map<String, Map<String, Value>> notPortAttrs = new HashMap<>();
+    notPortAttrs.put("in", noAttributes);
+    notPortAttrs.put("out", noAttributes);
+    NodeValue notGate = new NodeValue(notType, noAttributes, notPortAttrs);
+    return notGate;
   }
 
   public static NodeValue instantiateInputPin() throws SchematicException {
