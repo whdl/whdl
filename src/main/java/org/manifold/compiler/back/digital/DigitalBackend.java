@@ -2,7 +2,6 @@ package org.manifold.compiler.back.digital;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -17,8 +16,6 @@ import org.apache.log4j.Level;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
-import org.manifold.compiler.ConnectionValue;
-import org.manifold.compiler.NodeValue;
 import org.manifold.compiler.OptionError;
 import org.manifold.compiler.UndefinedBehaviourError;
 import org.manifold.compiler.middle.Schematic;
