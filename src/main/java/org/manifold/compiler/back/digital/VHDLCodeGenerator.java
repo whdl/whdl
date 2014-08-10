@@ -121,7 +121,7 @@ public class VHDLCodeGenerator {
       notType = schematic.getNodeType("not");
     } catch (UndeclaredIdentifierException e) {
       err("could not find required digital design type '"
-          + e.getIdentifier() +"'; schematic version mismatch or "
+          + e.getIdentifier() + "'; schematic version mismatch or "
           + " not a digital schematic");
     }
 
@@ -458,7 +458,7 @@ public class VHDLCodeGenerator {
       }
     } else if (node.getType().equals(andType)) {
       // out <= (in0 AND in1);
-      try{
+      try {
         String sigIn0 = escapeIdentifier(netlist.getConnectedNet(
             node.getPort("in0")).getName());
         String sigIn1 = escapeIdentifier(netlist.getConnectedNet(
@@ -472,7 +472,7 @@ public class VHDLCodeGenerator {
       }
     } else if (node.getType().equals(orType)) {
       // out <= (in0 OR in1);
-      try{
+      try {
         String sigIn0 = escapeIdentifier(netlist.getConnectedNet(
             node.getPort("in0")).getName());
         String sigIn1 = escapeIdentifier(netlist.getConnectedNet(
@@ -486,7 +486,7 @@ public class VHDLCodeGenerator {
       }
     } else if (node.getType().equals(notType)) {
       // out <= (NOT in);
-      try{
+      try {
         String sigIn = escapeIdentifier(netlist.getConnectedNet(
             node.getPort("in")).getName());
         String sigOut = escapeIdentifier(netlist.getConnectedNet(
