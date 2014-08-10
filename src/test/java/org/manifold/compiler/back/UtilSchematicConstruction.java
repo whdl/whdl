@@ -13,6 +13,7 @@ import org.manifold.compiler.NodeTypeValue;
 import org.manifold.compiler.NodeValue;
 import org.manifold.compiler.PortTypeValue;
 import org.manifold.compiler.PortValue;
+import org.manifold.compiler.TypeMismatchException;
 import org.manifold.compiler.TypeValue;
 import org.manifold.compiler.UndeclaredAttributeException;
 import org.manifold.compiler.Value;
@@ -204,7 +205,8 @@ public class UtilSchematicConstruction {
   }
 
   public static ConnectionValue instantiateWire(PortValue from, PortValue to)
-      throws UndeclaredAttributeException, InvalidAttributeException {
+      throws UndeclaredAttributeException, InvalidAttributeException,
+      TypeMismatchException {
     ConnectionValue wire = new ConnectionValue(digitalWireType, from, to,
         noAttributes);
     return wire;
