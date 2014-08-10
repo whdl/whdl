@@ -18,6 +18,7 @@ public class NoUnconnectedInputsCheck extends Check {
   private PortTypeValue digitalOutType;
 
   public NoUnconnectedInputsCheck(Schematic schematic, Netlist netlist) {
+    super("no unconnected inputs");
     this.schematic = schematic;
     this.netlist = netlist;
     try {
