@@ -16,6 +16,7 @@ public class NoMultipleDriversCheck extends Check {
   private PortTypeValue digitalOutType;
 
   public NoMultipleDriversCheck(Schematic schematic, Netlist netlist) {
+    super("no multiple drivers");
     this.schematic = schematic;
     this.netlist = netlist;
     try {
@@ -28,16 +29,12 @@ public class NoMultipleDriversCheck extends Check {
 
   @Override
   protected void verify() {
-    System.err.println("expected digital out type = "
-        + digitalOutType.toString());
     Map<String, Net> allNets = netlist.getNets();
     boolean noMultipleDrivers = true;
     for (Net net : allNets.values()) {
       int nDrivers = 0;
       // a driver is any Port of type `digitalOutType`
       for (PortValue port : net.getConnectedPorts()) {
-        System.err.println("port type = "
-            + port.getType().toString());
         if (port.getType() == digitalOutType) {
           nDrivers += 1;
         }
