@@ -24,7 +24,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.manifold.compiler.ConnectionValue;
-import org.manifold.compiler.MultipleDefinitionException;
 import org.manifold.compiler.NodeValue;
 import org.manifold.compiler.back.digital.CodeGenerationError;
 import org.manifold.compiler.back.digital.VHDLCodeGenerator;
@@ -369,6 +368,77 @@ public class TestVHDLCodeGenerator {
     // check the order in which these statements were found
     assertTrue("wrong statement order for asynchronous reset",
         lineResetStmt < lineClockStmt);
+  }
+  
+  @Test
+  public void testANDSignalGeneration() throws SchematicException, IOException {
+    // Connect two inputs through an AND gate to an output.
+    Schematic schematic = UtilSchematicConstruction
+        .instantiateSchematic("test");
+    NodeValue in0 = UtilSchematicConstruction.instantiateInputPin();
+    schematic.addNode("in0", in0);
+    NodeValue in1 = UtilSchematicConstruction.instantiateInputPin();
+    schematic.addNode("in1", in1);
+    NodeValue and0 = UtilSchematicConstruction.instantiateAnd();
+    schematic.addNode("and0", and0);
+    NodeValue out0 = UtilSchematicConstruction.instantiateOutputPin();
+    schematic.addNode("out0", out0);
+    ConnectionValue net0 = UtilSchematicConstruction.instantiateWire(
+        in0.getPort("out"), and0.getPort("in0"));
+    schematic.addConnection("net0", net0);
+    ConnectionValue net1 = UtilSchematicConstruction.instantiateWire(
+        in1.getPort("out"), and0.getPort("in1"));
+    schematic.addConnection("net1", net1);
+    ConnectionValue net2 = UtilSchematicConstruction.instantiateWire(
+        and0.getPort("out"), out0.getPort("in"));
+    schematic.addConnection("net2", net2);
+
+    VHDLCodeGenerator codegen = new VHDLCodeGenerator(schematic);
+    File tempdir = folder.getRoot();
+    String temppath = tempdir.getAbsolutePath();
+    codegen.setOutputDirectory(temppath);
+    codegen.generateOutputProducts();
+    
+    // open test.vhd
+    String testOutputFilename = temppath + "/test.vhd";
+    Path testOutputPath = Paths.get(testOutputFilename);
+    List<String> testLines = Files.readAllLines(testOutputPath);
+    
+    Pattern archBegin = Pattern.compile("^\\s*architecture",
+        Pattern.CASE_INSENSITIVE);
+    Pattern archEnd = Pattern.compile("end\\s*architecture",
+        Pattern.CASE_INSENSITIVE);
+    Pattern andAssign = Pattern.compile("<=.*[aA][nN][dD]");
+    
+    boolean foundArchitecture = false;
+    boolean foundGate = false;
+    boolean scanningArchitecture = false;
+    for (String line : testLines) {
+      if (scanningArchitecture) {
+        Matcher mArchEnd = archEnd.matcher(line);
+        if (mArchEnd.find()) {
+          scanningArchitecture = false;
+          break;
+        }
+        Matcher mAndAssign = andAssign.matcher(line);
+        if (mAndAssign.find()) {
+          if (foundGate) {
+            fail("multiple AND gates found");
+          } else {
+            foundGate = true;
+          }
+        }
+      } else {
+        Matcher mArchBegin = archBegin.matcher(line);
+        if (mArchBegin.find()) {
+          foundArchitecture = true;
+          scanningArchitecture = true;
+        }
+      }
+    }
+    assertTrue("no architecture block found in generated code", 
+        foundArchitecture);
+    assertTrue("no AND gate found in generated code", foundGate);
   }
   
   @Test
