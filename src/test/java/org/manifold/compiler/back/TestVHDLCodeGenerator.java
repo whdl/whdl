@@ -442,6 +442,143 @@ public class TestVHDLCodeGenerator {
   }
   
   @Test
+  public void testORSignalGeneration() throws SchematicException, IOException {
+    // Connect two inputs through an OR gate to an output.
+    Schematic schematic = UtilSchematicConstruction
+        .instantiateSchematic("test");
+    NodeValue in0 = UtilSchematicConstruction.instantiateInputPin();
+    schematic.addNode("in0", in0);
+    NodeValue in1 = UtilSchematicConstruction.instantiateInputPin();
+    schematic.addNode("in1", in1);
+    NodeValue or0 = UtilSchematicConstruction.instantiateOr();
+    schematic.addNode("or0", or0);
+    NodeValue out0 = UtilSchematicConstruction.instantiateOutputPin();
+    schematic.addNode("out0", out0);
+    ConnectionValue net0 = UtilSchematicConstruction.instantiateWire(
+        in0.getPort("out"), or0.getPort("in0"));
+    schematic.addConnection("net0", net0);
+    ConnectionValue net1 = UtilSchematicConstruction.instantiateWire(
+        in1.getPort("out"), or0.getPort("in1"));
+    schematic.addConnection("net1", net1);
+    ConnectionValue net2 = UtilSchematicConstruction.instantiateWire(
+        or0.getPort("out"), out0.getPort("in"));
+    schematic.addConnection("net2", net2);
+
+    VHDLCodeGenerator codegen = new VHDLCodeGenerator(schematic);
+    File tempdir = folder.getRoot();
+    String temppath = tempdir.getAbsolutePath();
+    codegen.setOutputDirectory(temppath);
+    codegen.generateOutputProducts();
+    
+    // open test.vhd
+    String testOutputFilename = temppath + "/test.vhd";
+    Path testOutputPath = Paths.get(testOutputFilename);
+    List<String> testLines = Files.readAllLines(testOutputPath);
+    
+    Pattern archBegin = Pattern.compile("^\\s*architecture",
+        Pattern.CASE_INSENSITIVE);
+    Pattern archEnd = Pattern.compile("end\\s*architecture",
+        Pattern.CASE_INSENSITIVE);
+    Pattern andAssign = Pattern.compile("<=.*[oO][rR]");
+    
+    boolean foundArchitecture = false;
+    boolean foundGate = false;
+    boolean scanningArchitecture = false;
+    for (String line : testLines) {
+      if (scanningArchitecture) {
+        Matcher mArchEnd = archEnd.matcher(line);
+        if (mArchEnd.find()) {
+          scanningArchitecture = false;
+          break;
+        }
+        Matcher mAndAssign = andAssign.matcher(line);
+        if (mAndAssign.find()) {
+          if (foundGate) {
+            fail("multiple OR gates found");
+          } else {
+            foundGate = true;
+          }
+        }
+      } else {
+        Matcher mArchBegin = archBegin.matcher(line);
+        if (mArchBegin.find()) {
+          foundArchitecture = true;
+          scanningArchitecture = true;
+        }
+      }
+    }
+    assertTrue("no architecture block found in generated code", 
+        foundArchitecture);
+    assertTrue("no OR gate found in generated code", foundGate);
+  }
+  
+  @Test
+  public void testNOTSignalGeneration() throws SchematicException, IOException {
+    // Connect one input through a NOT gate to an output.
+    Schematic schematic = UtilSchematicConstruction
+        .instantiateSchematic("test");
+    NodeValue in0 = UtilSchematicConstruction.instantiateInputPin();
+    schematic.addNode("in0", in0);
+    NodeValue not0 = UtilSchematicConstruction.instantiateNot();
+    schematic.addNode("not0", not0);
+    NodeValue out0 = UtilSchematicConstruction.instantiateOutputPin();
+    schematic.addNode("out0", out0);
+    ConnectionValue net0 = UtilSchematicConstruction.instantiateWire(
+        in0.getPort("out"), not0.getPort("in"));
+    schematic.addConnection("net0", net0);
+    ConnectionValue net1 = UtilSchematicConstruction.instantiateWire(
+        not0.getPort("out"), out0.getPort("in"));
+    schematic.addConnection("net1", net1);
+
+    VHDLCodeGenerator codegen = new VHDLCodeGenerator(schematic);
+    File tempdir = folder.getRoot();
+    String temppath = tempdir.getAbsolutePath();
+    codegen.setOutputDirectory(temppath);
+    codegen.generateOutputProducts();
+    
+    // open test.vhd
+    String testOutputFilename = temppath + "/test.vhd";
+    Path testOutputPath = Paths.get(testOutputFilename);
+    List<String> testLines = Files.readAllLines(testOutputPath);
+    
+    Pattern archBegin = Pattern.compile("^\\s*architecture",
+        Pattern.CASE_INSENSITIVE);
+    Pattern archEnd = Pattern.compile("end\\s*architecture",
+        Pattern.CASE_INSENSITIVE);
+    Pattern andAssign = Pattern.compile("<=.*[nN][oO][tT]");
+    
+    boolean foundArchitecture = false;
+    boolean foundGate = false;
+    boolean scanningArchitecture = false;
+    for (String line : testLines) {
+      if (scanningArchitecture) {
+        Matcher mArchEnd = archEnd.matcher(line);
+        if (mArchEnd.find()) {
+          scanningArchitecture = false;
+          break;
+        }
+        Matcher mAndAssign = andAssign.matcher(line);
+        if (mAndAssign.find()) {
+          if (foundGate) {
+            fail("multiple NOT gates found");
+          } else {
+            foundGate = true;
+          }
+        }
+      } else {
+        Matcher mArchBegin = archBegin.matcher(line);
+        if (mArchBegin.find()) {
+          foundArchitecture = true;
+          scanningArchitecture = true;
+        }
+      }
+    }
+    assertTrue("no architecture block found in generated code", 
+        foundArchitecture);
+    assertTrue("no NOT gate found in generated code", foundGate);
+  }
+  
+  @Test
   public void testNonExistentOutputDirectoryThrowsException() 
       throws SchematicException {
     // Establish a simple demo schematic
