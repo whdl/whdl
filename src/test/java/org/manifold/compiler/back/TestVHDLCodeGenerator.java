@@ -479,7 +479,7 @@ public class TestVHDLCodeGenerator {
         Pattern.CASE_INSENSITIVE);
     Pattern archEnd = Pattern.compile("end\\s*architecture",
         Pattern.CASE_INSENSITIVE);
-    Pattern andAssign = Pattern.compile("<=.*[oO][rR]");
+    Pattern orAssign = Pattern.compile("<=.*[oO][rR]");
     
     boolean foundArchitecture = false;
     boolean foundGate = false;
@@ -491,8 +491,8 @@ public class TestVHDLCodeGenerator {
           scanningArchitecture = false;
           break;
         }
-        Matcher mAndAssign = andAssign.matcher(line);
-        if (mAndAssign.find()) {
+        Matcher mOrAssign = orAssign.matcher(line);
+        if (mOrAssign.find()) {
           if (foundGate) {
             fail("multiple OR gates found");
           } else {
@@ -545,7 +545,7 @@ public class TestVHDLCodeGenerator {
         Pattern.CASE_INSENSITIVE);
     Pattern archEnd = Pattern.compile("end\\s*architecture",
         Pattern.CASE_INSENSITIVE);
-    Pattern andAssign = Pattern.compile("<=.*[nN][oO][tT]");
+    Pattern notAssign = Pattern.compile("<=.*[nN][oO][tT]");
     
     boolean foundArchitecture = false;
     boolean foundGate = false;
@@ -557,8 +557,8 @@ public class TestVHDLCodeGenerator {
           scanningArchitecture = false;
           break;
         }
-        Matcher mAndAssign = andAssign.matcher(line);
-        if (mAndAssign.find()) {
+        Matcher mNotAssign = notAssign.matcher(line);
+        if (mNotAssign.find()) {
           if (foundGate) {
             fail("multiple NOT gates found");
           } else {
