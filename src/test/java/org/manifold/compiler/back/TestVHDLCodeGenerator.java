@@ -50,6 +50,20 @@ public class TestVHDLCodeGenerator {
   @Rule
   public TemporaryFolder folder = new TemporaryFolder();
 
+  private List<String> schematicToVHDL(Schematic schematic) throws IOException{
+    VHDLCodeGenerator codegen = new VHDLCodeGenerator(schematic);
+    File tempdir = folder.getRoot();
+    String temppath = tempdir.getAbsolutePath();
+    codegen.setOutputDirectory(temppath);
+    codegen.generateOutputProducts();
+
+    // open generated code
+    String testOutputFilename = temppath + "/" + schematic.getName() + ".vhd";
+    Path testOutputPath = Paths.get(testOutputFilename);
+    List<String> lines = Files.readAllLines(testOutputPath);
+    return lines;
+  }
+  
   @Test
   public void testOutputProductPresent() throws SchematicException {
     // Connect an input pin straight across to an output pin.
@@ -108,16 +122,8 @@ public class TestVHDLCodeGenerator {
         in0.getPort("out"), out0.getPort("in"));
     schematic.addConnection("net0", net0);
 
-    VHDLCodeGenerator codegen = new VHDLCodeGenerator(schematic);
-    File tempdir = folder.getRoot();
-    String temppath = tempdir.getAbsolutePath();
-    codegen.setOutputDirectory(temppath);
-    codegen.generateOutputProducts();
-
-    // open test.vhd
-    String testOutputFilename = temppath + "/test.vhd";
-    Path testOutputPath = Paths.get(testOutputFilename);
-    List<String> testLines = Files.readAllLines(testOutputPath);
+    List<String> testLines = schematicToVHDL(schematic);
+    
     // we are looking for the following two lines:
     // "in0: in std_logic"
     // "out0: out std_logic"
@@ -205,16 +211,8 @@ public class TestVHDLCodeGenerator {
         reg0.getPort("out"), out0.getPort("in"));
     schematic.addConnection("nOut0", nOut0);
 
-    VHDLCodeGenerator codegen = new VHDLCodeGenerator(schematic);
-    File tempdir = folder.getRoot();
-    String temppath = tempdir.getAbsolutePath();
-    codegen.setOutputDirectory(temppath);
-    codegen.generateOutputProducts();
-
-    // open test.vhd
-    String testOutputFilename = temppath + "/test.vhd";
-    Path testOutputPath = Paths.get(testOutputFilename);
-    List<String> testLines = Files.readAllLines(testOutputPath);
+    List<String> testLines = schematicToVHDL(schematic);
+    
     // the signal corresponding to the register should be named after
     // the net connected to the register's "out" port,
     // needs to be declared somewhere in the architecture declarations
@@ -304,16 +302,7 @@ public class TestVHDLCodeGenerator {
         reg0.getPort("out"), out0.getPort("in"));
     schematic.addConnection("nOut0", nOut0);
 
-    VHDLCodeGenerator codegen = new VHDLCodeGenerator(schematic);
-    File tempdir = folder.getRoot();
-    String temppath = tempdir.getAbsolutePath();
-    codegen.setOutputDirectory(temppath);
-    codegen.generateOutputProducts();
-
-    // open test.vhd
-    String testOutputFilename = temppath + "/test.vhd";
-    Path testOutputPath = Paths.get(testOutputFilename);
-    List<String> testLines = Files.readAllLines(testOutputPath);
+    List<String> testLines = schematicToVHDL(schematic);
     
     // For an asynchronous reset, we need to see the conditional for the
     // reset signal before the conditional for the clock edge
@@ -393,16 +382,7 @@ public class TestVHDLCodeGenerator {
         and0.getPort("out"), out0.getPort("in"));
     schematic.addConnection("net2", net2);
 
-    VHDLCodeGenerator codegen = new VHDLCodeGenerator(schematic);
-    File tempdir = folder.getRoot();
-    String temppath = tempdir.getAbsolutePath();
-    codegen.setOutputDirectory(temppath);
-    codegen.generateOutputProducts();
-    
-    // open test.vhd
-    String testOutputFilename = temppath + "/test.vhd";
-    Path testOutputPath = Paths.get(testOutputFilename);
-    List<String> testLines = Files.readAllLines(testOutputPath);
+    List<String> testLines = schematicToVHDL(schematic);
     
     Pattern archBegin = Pattern.compile("^\\s*architecture",
         Pattern.CASE_INSENSITIVE);
@@ -464,16 +444,7 @@ public class TestVHDLCodeGenerator {
         or0.getPort("out"), out0.getPort("in"));
     schematic.addConnection("net2", net2);
 
-    VHDLCodeGenerator codegen = new VHDLCodeGenerator(schematic);
-    File tempdir = folder.getRoot();
-    String temppath = tempdir.getAbsolutePath();
-    codegen.setOutputDirectory(temppath);
-    codegen.generateOutputProducts();
-    
-    // open test.vhd
-    String testOutputFilename = temppath + "/test.vhd";
-    Path testOutputPath = Paths.get(testOutputFilename);
-    List<String> testLines = Files.readAllLines(testOutputPath);
+    List<String> testLines = schematicToVHDL(schematic);
     
     Pattern archBegin = Pattern.compile("^\\s*architecture",
         Pattern.CASE_INSENSITIVE);
@@ -530,16 +501,7 @@ public class TestVHDLCodeGenerator {
         not0.getPort("out"), out0.getPort("in"));
     schematic.addConnection("net1", net1);
 
-    VHDLCodeGenerator codegen = new VHDLCodeGenerator(schematic);
-    File tempdir = folder.getRoot();
-    String temppath = tempdir.getAbsolutePath();
-    codegen.setOutputDirectory(temppath);
-    codegen.generateOutputProducts();
-    
-    // open test.vhd
-    String testOutputFilename = temppath + "/test.vhd";
-    Path testOutputPath = Paths.get(testOutputFilename);
-    List<String> testLines = Files.readAllLines(testOutputPath);
+    List<String> testLines = schematicToVHDL(schematic);
     
     Pattern archBegin = Pattern.compile("^\\s*architecture",
         Pattern.CASE_INSENSITIVE);
