@@ -40,11 +40,14 @@ public class DigitalBackend {
 
   private Options options;
 
-  private enum TARGET_HDL {
+  public enum TARGET_HDL {
     VHDL,
   };
 
-  private TARGET_HDL targetHDL;
+  private TARGET_HDL targetHDL = null;
+  public TARGET_HDL getTargetHDL() {
+    return targetHDL;
+  }
 
   private void createOptionTargetHDL() {
     Option hdl = new Option("h", "hdl", true, "target HDL type (vhdl)");
