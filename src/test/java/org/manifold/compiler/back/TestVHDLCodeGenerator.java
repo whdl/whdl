@@ -52,7 +52,8 @@ public class TestVHDLCodeGenerator {
   @Rule
   public TemporaryFolder folder = new TemporaryFolder();
 
-  private List<String> schematicToVHDL(Schematic schematic) throws IOException{
+  private List<String> schematicToVHDL(Schematic schematic) 
+      throws IOException {
     VHDLCodeGenerator codegen = new VHDLCodeGenerator(schematic);
     File tempdir = folder.getRoot();
     String temppath = tempdir.getAbsolutePath();
@@ -68,7 +69,8 @@ public class TestVHDLCodeGenerator {
   
   // Find all lines between, but not including, an occurrence of "begin"
   // and an occurrence of "end" (surrounded by whitespace).
-  private List<String> findBlock(List<String> lines, String begin, String end){
+  private List<String> findBlock(List<String> lines, 
+      String begin, String end) {
     List<String> block = new ArrayList<String>();
     
     Pattern beginBlock = Pattern.compile(
@@ -77,17 +79,17 @@ public class TestVHDLCodeGenerator {
         "\\s*" + begin + "\\s*", Pattern.CASE_INSENSITIVE);
     
     boolean scanningBlock = false;
-    for(String line : lines){
-      if(scanningBlock){
+    for (String line : lines) {
+      if (scanningBlock) {
         Matcher mEnd = endBlock.matcher(line);
-        if(mEnd.find()){
+        if (mEnd.find()) {
           break;
-        }else{
+        } else {
           block.add(line);
         }
-      }else{
+      } else {
         Matcher mBegin = beginBlock.matcher(line);
-        if(mBegin.find()){
+        if (mBegin.find()) {
           scanningBlock = true;
         }
       }
@@ -98,9 +100,9 @@ public class TestVHDLCodeGenerator {
   private int countMatches(List<String> block, String pattern){
     Pattern p = Pattern.compile(pattern);
     int matchCount = 0;
-    for(String target : block){
+    for (String target : block) {
       Matcher mTarget = p.matcher(target);
-      if(mTarget.find()){
+      if (mTarget.find()) {
         ++matchCount;
       }
     }
@@ -229,50 +231,36 @@ public class TestVHDLCodeGenerator {
     // needs to be declared somewhere in the architecture declarations
     // (i.e. between "ARCHITECTURE" and "BEGIN"),
     // and needs to have the correct initial value (" := '1'; ").
-    Pattern beginArchDecls = Pattern.compile(
-        "^\\s*architecture\\s+manifold", Pattern.CASE_INSENSITIVE);
-    Pattern endArchDecls = Pattern.compile(
-        "^\\s*begin", Pattern.CASE_INSENSITIVE);
+    List<String> archDeclsBlock = findBlock(testLines,
+        "architecture\\s+manifold",
+        "begin");
+    
     Pattern regDecl = Pattern.compile(
         "^\\s*signal\\s+\\\\\\w*nOut0\\\\\\s*:\\s*std_logic");
     Pattern regInit = Pattern.compile(
         "\\s*:=\\s*'1'\\s*;");
-    boolean foundArchDecls = false;
-    boolean scanningArchDecls = false;
+    
     boolean foundRegDecl = false;
     String capturedRegDecl = "";
     boolean foundCorrectInitializer = false;
-    for (String line : testLines) {
-      if (scanningArchDecls) {
-        Matcher mEndArchDecls = endArchDecls.matcher(line);
-        if (mEndArchDecls.find()) {
-          scanningArchDecls = false;
-          break;
+    for (String line : archDeclsBlock) {
+      Matcher mRegDecl = regDecl.matcher(line);
+      if (mRegDecl.find()) {
+        if (foundRegDecl) {
+          fail("multiple register signal declarations");
         }
-        Matcher mRegDecl = regDecl.matcher(line);
-        if (mRegDecl.find()) {
-          if (foundRegDecl) {
-            fail("multiple register signal declarations");
-          }
-          foundRegDecl = true;
-          capturedRegDecl = line;
-          // check initializer
-          Matcher mRegInit = regInit.matcher(line);
-          if (mRegInit.find()) {
-            foundCorrectInitializer = true;
-          }
-        }
-      } else {
-        Matcher mBeginArchDecls = beginArchDecls.matcher(line);
-        if (mBeginArchDecls.find()) {
-          foundArchDecls = true;
-          scanningArchDecls = true;
+        foundRegDecl = true;
+        capturedRegDecl = line;
+        // check initializer
+        Matcher mRegInit = regInit.matcher(line);
+        if (mRegInit.find()) {
+          foundCorrectInitializer = true;
         }
       }
     }
     // collect results
-    assertTrue("no architecture declaration section present"
-        + " in generated code", foundArchDecls);
+    assertFalse("no architecture declaration section present"
+        + " in generated code", archDeclsBlock.isEmpty());
     assertTrue("no register signal declaration found", foundRegDecl);
     assertTrue("register signal declaration has wrong initializer: "
         + capturedRegDecl, foundCorrectInitializer);
