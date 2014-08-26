@@ -1,5 +1,7 @@
 package org.manifold.compiler.back;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -24,7 +26,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.manifold.compiler.ConnectionValue;
-import org.manifold.compiler.MultipleDefinitionException;
 import org.manifold.compiler.NodeValue;
 import org.manifold.compiler.back.digital.CodeGenerationError;
 import org.manifold.compiler.back.digital.VHDLCodeGenerator;
@@ -51,6 +52,63 @@ public class TestVHDLCodeGenerator {
   @Rule
   public TemporaryFolder folder = new TemporaryFolder();
 
+  private List<String> schematicToVHDL(Schematic schematic) 
+      throws IOException {
+    VHDLCodeGenerator codegen = new VHDLCodeGenerator(schematic);
+    File tempdir = folder.getRoot();
+    String temppath = tempdir.getAbsolutePath();
+    codegen.setOutputDirectory(temppath);
+    codegen.generateOutputProducts();
+
+    // open generated code
+    String testOutputFilename = temppath + "/" + schematic.getName() + ".vhd";
+    Path testOutputPath = Paths.get(testOutputFilename);
+    List<String> lines = Files.readAllLines(testOutputPath);
+    return lines;
+  }
+  
+  // Find all lines between, but not including, an occurrence of "begin"
+  // and an occurrence of "end" (surrounded by whitespace).
+  private List<String> findBlock(List<String> lines, 
+      String begin, String end) {
+    List<String> block = new ArrayList<String>();
+    
+    Pattern beginBlock = Pattern.compile(
+        "\\s*" + begin + "\\s*", Pattern.CASE_INSENSITIVE);
+    Pattern endBlock = Pattern.compile(
+        "\\s*" + begin + "\\s*", Pattern.CASE_INSENSITIVE);
+    
+    boolean scanningBlock = false;
+    for (String line : lines) {
+      if (scanningBlock) {
+        Matcher mEnd = endBlock.matcher(line);
+        if (mEnd.find()) {
+          break;
+        } else {
+          block.add(line);
+        }
+      } else {
+        Matcher mBegin = beginBlock.matcher(line);
+        if (mBegin.find()) {
+          scanningBlock = true;
+        }
+      }
+    }
+    return block;
+  }
+  
+  private int countMatches(List<String> block, String pattern){
+    Pattern p = Pattern.compile(pattern);
+    int matchCount = 0;
+    for (String target : block) {
+      Matcher mTarget = p.matcher(target);
+      if (mTarget.find()) {
+        ++matchCount;
+      }
+    }
+    return matchCount;
+  }
+  
   @Test
   public void testOutputProductPresent() throws SchematicException {
     // Connect an input pin straight across to an output pin.
@@ -109,69 +167,29 @@ public class TestVHDLCodeGenerator {
         in0.getPort("out"), out0.getPort("in"));
     schematic.addConnection("net0", net0);
 
-    VHDLCodeGenerator codegen = new VHDLCodeGenerator(schematic);
-    File tempdir = folder.getRoot();
-    String temppath = tempdir.getAbsolutePath();
-    codegen.setOutputDirectory(temppath);
-    codegen.generateOutputProducts();
-
-    // open test.vhd
-    String testOutputFilename = temppath + "/test.vhd";
-    Path testOutputPath = Paths.get(testOutputFilename);
-    List<String> testLines = Files.readAllLines(testOutputPath);
+    List<String> testLines = schematicToVHDL(schematic);
+    
     // we are looking for the following two lines:
     // "in0: in std_logic"
     // "out0: out std_logic"
     // somewhere between a line starting with "entity"
     // and the first following line starting with "end"
-    boolean foundEntity = false;
-    boolean scanningEntity = false;
-    boolean foundInputPort = false;
-    boolean foundOutputPort = false;
     
-    Pattern beginEntity = Pattern.compile(
-        "^\\s*entity\\s+\\\\test\\\\\\s+is");
-    Pattern endEntity = Pattern.compile(
-        "^\\s*end\\s+entity", Pattern.CASE_INSENSITIVE);
-    Pattern inputPort = Pattern.compile(
+    List<String> entityBlock = findBlock(testLines, "entity\\s+\\\\test\\\\\\s",
+        "end\\s+entity");
+
+    int inputPorts = countMatches(entityBlock, 
         "^\\s*in0\\s*:\\s*(?i)in\\s+std_logic");
-    Pattern outputPort = Pattern.compile(
+    int outputPorts = countMatches(entityBlock,
         "^\\s*out0\\s*:\\s*(?i)out\\s+std_logic");
-    for (String line : testLines) {
-      if (scanningEntity) {
-        Matcher mEndEntity = endEntity.matcher(line);
-        if (mEndEntity.find()) {
-          scanningEntity = false;
-          break;
-        }
-        // look for an input port or an output port
-        Matcher mInputPort = inputPort.matcher(line);
-        if (mInputPort.find()) {
-          if (foundInputPort) {
-            fail("multiple input port declarations");
-          }
-          foundInputPort = true;
-        }
-        Matcher mOutputPort = outputPort.matcher(line);
-        if (mOutputPort.find()) {
-          if (foundOutputPort) {
-            fail("multiple output port declarations");
-          }
-          foundOutputPort = true;
-        }
-      } else {
-        Matcher mBeginEntity = beginEntity.matcher(line);
-        if (mBeginEntity.find()) {
-          foundEntity = true;
-          scanningEntity = true;
-        }
-      }
-    }
+    
     // collect results
-    assertTrue("no entity declaration present in generated code",
-        foundEntity);
-    assertTrue("no input port declaration found", foundInputPort);
-    assertTrue("no output port declaration found", foundOutputPort);
+    assertFalse("no entity declaration present in generated code",
+        entityBlock.isEmpty());
+    assertEquals("expect exactly one input port declaration", 
+        1, inputPorts);
+    assertEquals("expect exactly one output port declaration", 
+        1, outputPorts);
   }
   
   @Test
@@ -206,65 +224,43 @@ public class TestVHDLCodeGenerator {
         reg0.getPort("out"), out0.getPort("in"));
     schematic.addConnection("nOut0", nOut0);
 
-    VHDLCodeGenerator codegen = new VHDLCodeGenerator(schematic);
-    File tempdir = folder.getRoot();
-    String temppath = tempdir.getAbsolutePath();
-    codegen.setOutputDirectory(temppath);
-    codegen.generateOutputProducts();
-
-    // open test.vhd
-    String testOutputFilename = temppath + "/test.vhd";
-    Path testOutputPath = Paths.get(testOutputFilename);
-    List<String> testLines = Files.readAllLines(testOutputPath);
+    List<String> testLines = schematicToVHDL(schematic);
+    
     // the signal corresponding to the register should be named after
     // the net connected to the register's "out" port,
     // needs to be declared somewhere in the architecture declarations
     // (i.e. between "ARCHITECTURE" and "BEGIN"),
     // and needs to have the correct initial value (" := '1'; ").
-    Pattern beginArchDecls = Pattern.compile(
-        "^\\s*architecture\\s+manifold", Pattern.CASE_INSENSITIVE);
-    Pattern endArchDecls = Pattern.compile(
-        "^\\s*begin", Pattern.CASE_INSENSITIVE);
+    List<String> archDeclsBlock = findBlock(testLines,
+        "architecture\\s+manifold",
+        "begin");
+    
     Pattern regDecl = Pattern.compile(
         "^\\s*signal\\s+\\\\\\w*nOut0\\\\\\s*:\\s*std_logic");
     Pattern regInit = Pattern.compile(
         "\\s*:=\\s*'1'\\s*;");
-    boolean foundArchDecls = false;
-    boolean scanningArchDecls = false;
+    
     boolean foundRegDecl = false;
     String capturedRegDecl = "";
     boolean foundCorrectInitializer = false;
-    for (String line : testLines) {
-      if (scanningArchDecls) {
-        Matcher mEndArchDecls = endArchDecls.matcher(line);
-        if (mEndArchDecls.find()) {
-          scanningArchDecls = false;
-          break;
+    for (String line : archDeclsBlock) {
+      Matcher mRegDecl = regDecl.matcher(line);
+      if (mRegDecl.find()) {
+        if (foundRegDecl) {
+          fail("multiple register signal declarations");
         }
-        Matcher mRegDecl = regDecl.matcher(line);
-        if (mRegDecl.find()) {
-          if (foundRegDecl) {
-            fail("multiple register signal declarations");
-          }
-          foundRegDecl = true;
-          capturedRegDecl = line;
-          // check initializer
-          Matcher mRegInit = regInit.matcher(line);
-          if (mRegInit.find()) {
-            foundCorrectInitializer = true;
-          }
-        }
-      } else {
-        Matcher mBeginArchDecls = beginArchDecls.matcher(line);
-        if (mBeginArchDecls.find()) {
-          foundArchDecls = true;
-          scanningArchDecls = true;
+        foundRegDecl = true;
+        capturedRegDecl = line;
+        // check initializer
+        Matcher mRegInit = regInit.matcher(line);
+        if (mRegInit.find()) {
+          foundCorrectInitializer = true;
         }
       }
     }
     // collect results
-    assertTrue("no architecture declaration section present"
-        + " in generated code", foundArchDecls);
+    assertFalse("no architecture declaration section present"
+        + " in generated code", archDeclsBlock.isEmpty());
     assertTrue("no register signal declaration found", foundRegDecl);
     assertTrue("register signal declaration has wrong initializer: "
         + capturedRegDecl, foundCorrectInitializer);
@@ -305,70 +301,147 @@ public class TestVHDLCodeGenerator {
         reg0.getPort("out"), out0.getPort("in"));
     schematic.addConnection("nOut0", nOut0);
 
-    VHDLCodeGenerator codegen = new VHDLCodeGenerator(schematic);
-    File tempdir = folder.getRoot();
-    String temppath = tempdir.getAbsolutePath();
-    codegen.setOutputDirectory(temppath);
-    codegen.generateOutputProducts();
-
-    // open test.vhd
-    String testOutputFilename = temppath + "/test.vhd";
-    Path testOutputPath = Paths.get(testOutputFilename);
-    List<String> testLines = Files.readAllLines(testOutputPath);
+    List<String> testLines = schematicToVHDL(schematic);
     
     // For an asynchronous reset, we need to see the conditional for the
     // reset signal before the conditional for the clock edge
     // (which is rising edge here)
+    
+    List<String> processBlock = findBlock(testLines,
+        ":\\s*process",
+        "end\\s*process");
+    
     Pattern clockStmt = Pattern.compile("if.*rising_edge",
         Pattern.CASE_INSENSITIVE);
     Pattern resetStmt = Pattern.compile("if.*nReset",
         Pattern.CASE_INSENSITIVE);
-    Pattern processBegin = Pattern.compile(":\\s*process",
-        Pattern.CASE_INSENSITIVE);
-    Pattern processEnd = Pattern.compile("end\\s*process",
-        Pattern.CASE_INSENSITIVE);
-    boolean foundProcess = false;
-    boolean scanningProcess = false;
+
     int lineNumber = 0;
     // line numbers on which we have found statements
     int lineClockStmt = 0;
     int lineResetStmt = 0;
-    for (String line : testLines) {
+    for (String line : processBlock) {
       ++lineNumber;
-      if (scanningProcess) {
-        Matcher mProcessEnd = processEnd.matcher(line);
-        if (mProcessEnd.find()) {
-          scanningProcess = false;
-          break;
+      Matcher mClockStmt = clockStmt.matcher(line);
+      if (mClockStmt.find()) {
+        if (lineClockStmt != 0) {
+          fail("found multiple clock statements");
         }
-        Matcher mClockStmt = clockStmt.matcher(line);
-        if (mClockStmt.find()) {
-          if (lineClockStmt != 0) {
-            fail("found multiple clock statements");
-          }
-          lineClockStmt = lineNumber;
+        lineClockStmt = lineNumber;
+      }
+      Matcher mResetStmt = resetStmt.matcher(line);
+      if (mResetStmt.find()) {
+        if (lineResetStmt != 0) {
+          fail("found multiple reset statements");
         }
-        Matcher mResetStmt = resetStmt.matcher(line);
-        if (mResetStmt.find()) {
-          if (lineResetStmt != 0) {
-            fail("found multiple reset statements");
-          }
-          lineResetStmt = lineNumber;
-        }
-      } else {
-        Matcher mProcessBegin = processBegin.matcher(line);
-        if (mProcessBegin.find()) {
-          foundProcess = true;
-          scanningProcess = true;
-        }
+        lineResetStmt = lineNumber;
       }
     }
-    assertTrue("no process block present in generated code", foundProcess);
+    
+    assertFalse("no process block present in generated code", 
+        processBlock.isEmpty());
     assertTrue("no clock statement found", lineClockStmt != 0);
     assertTrue("no reset statement found", lineResetStmt != 0);
     // check the order in which these statements were found
     assertTrue("wrong statement order for asynchronous reset",
         lineResetStmt < lineClockStmt);
+  }
+  
+  @Test
+  public void testANDSignalGeneration() throws SchematicException, IOException {
+    // Connect two inputs through an AND gate to an output.
+    Schematic schematic = UtilSchematicConstruction
+        .instantiateSchematic("test");
+    NodeValue in0 = UtilSchematicConstruction.instantiateInputPin();
+    schematic.addNode("in0", in0);
+    NodeValue in1 = UtilSchematicConstruction.instantiateInputPin();
+    schematic.addNode("in1", in1);
+    NodeValue and0 = UtilSchematicConstruction.instantiateAnd();
+    schematic.addNode("and0", and0);
+    NodeValue out0 = UtilSchematicConstruction.instantiateOutputPin();
+    schematic.addNode("out0", out0);
+    ConnectionValue net0 = UtilSchematicConstruction.instantiateWire(
+        in0.getPort("out"), and0.getPort("in0"));
+    schematic.addConnection("net0", net0);
+    ConnectionValue net1 = UtilSchematicConstruction.instantiateWire(
+        in1.getPort("out"), and0.getPort("in1"));
+    schematic.addConnection("net1", net1);
+    ConnectionValue net2 = UtilSchematicConstruction.instantiateWire(
+        and0.getPort("out"), out0.getPort("in"));
+    schematic.addConnection("net2", net2);
+
+    List<String> testLines = schematicToVHDL(schematic);
+    List<String> archBlock = findBlock(testLines,
+        "architecture", "end\\s*architecture");
+    int andAssigns = countMatches(archBlock, "(?i)<=.*and");
+    
+    assertFalse("no architecture block found in generated code", 
+        archBlock.isEmpty());
+    assertEquals("expect exactly 1 AND gate in generated code",
+        1, andAssigns);
+  }
+  
+  @Test
+  public void testORSignalGeneration() throws SchematicException, IOException {
+    // Connect two inputs through an OR gate to an output.
+    Schematic schematic = UtilSchematicConstruction
+        .instantiateSchematic("test");
+    NodeValue in0 = UtilSchematicConstruction.instantiateInputPin();
+    schematic.addNode("in0", in0);
+    NodeValue in1 = UtilSchematicConstruction.instantiateInputPin();
+    schematic.addNode("in1", in1);
+    NodeValue or0 = UtilSchematicConstruction.instantiateOr();
+    schematic.addNode("or0", or0);
+    NodeValue out0 = UtilSchematicConstruction.instantiateOutputPin();
+    schematic.addNode("out0", out0);
+    ConnectionValue net0 = UtilSchematicConstruction.instantiateWire(
+        in0.getPort("out"), or0.getPort("in0"));
+    schematic.addConnection("net0", net0);
+    ConnectionValue net1 = UtilSchematicConstruction.instantiateWire(
+        in1.getPort("out"), or0.getPort("in1"));
+    schematic.addConnection("net1", net1);
+    ConnectionValue net2 = UtilSchematicConstruction.instantiateWire(
+        or0.getPort("out"), out0.getPort("in"));
+    schematic.addConnection("net2", net2);
+
+    List<String> testLines = schematicToVHDL(schematic);
+    List<String> archBlock = findBlock(testLines,
+        "architecture", "end\\s*architecture");
+    int orAssigns = countMatches(archBlock, "(?i)<=.*or");
+    
+    assertFalse("no architecture block found in generated code", 
+        archBlock.isEmpty());
+    assertEquals("expect exactly 1 OR gate in generated code",
+        1, orAssigns);
+  }
+  
+  @Test
+  public void testNOTSignalGeneration() throws SchematicException, IOException {
+    // Connect one input through a NOT gate to an output.
+    Schematic schematic = UtilSchematicConstruction
+        .instantiateSchematic("test");
+    NodeValue in0 = UtilSchematicConstruction.instantiateInputPin();
+    schematic.addNode("in0", in0);
+    NodeValue not0 = UtilSchematicConstruction.instantiateNot();
+    schematic.addNode("not0", not0);
+    NodeValue out0 = UtilSchematicConstruction.instantiateOutputPin();
+    schematic.addNode("out0", out0);
+    ConnectionValue net0 = UtilSchematicConstruction.instantiateWire(
+        in0.getPort("out"), not0.getPort("in"));
+    schematic.addConnection("net0", net0);
+    ConnectionValue net1 = UtilSchematicConstruction.instantiateWire(
+        not0.getPort("out"), out0.getPort("in"));
+    schematic.addConnection("net1", net1);
+
+    List<String> testLines = schematicToVHDL(schematic);
+    List<String> archBlock = findBlock(testLines,
+        "architecture", "end\\s*architecture");
+    int notAssigns = countMatches(archBlock, "(?i)<=.*not");
+    
+    assertFalse("no architecture block found in generated code", 
+        archBlock.isEmpty());
+    assertEquals("expect exactly 1 NOT gate in generated code",
+        1, notAssigns);
   }
   
   @Test
