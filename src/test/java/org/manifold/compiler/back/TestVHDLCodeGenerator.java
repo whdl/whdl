@@ -59,7 +59,7 @@ public class TestVHDLCodeGenerator {
     codegen.setOutputDirectory(temppath);
     codegen.generateOutputProducts();
 
-    // open butts generated code
+    // open generated code
     String testOutputFilename = temppath + "/" + schematic.getName() + ".vhd";
     Path testOutputPath = Paths.get(testOutputFilename);
     List<String> lines = Files.readAllLines(testOutputPath);
@@ -76,7 +76,7 @@ public class TestVHDLCodeGenerator {
     Pattern endBlock = Pattern.compile(
         "\\s*" + begin + "\\s*", Pattern.CASE_INSENSITIVE);
     
-    boolean scanningBlock = true;
+    boolean scanningBlock = false;
     for(String line : lines){
       if(scanningBlock){
         Matcher mEnd = endBlock.matcher(line);
@@ -175,11 +175,11 @@ public class TestVHDLCodeGenerator {
     
     List<String> entityBlock = findBlock(testLines, "entity\\s+\\\\test\\\\\\s",
         "end\\s+entity");
+
     int inputPorts = countMatches(entityBlock, 
         "^\\s*in0\\s*:\\s*(?i)in\\s+std_logic");
     int outputPorts = countMatches(entityBlock,
         "^\\s*out0\\s*:\\s*(?i)out\\s+std_logic");
-    
     
     // collect results
     assertFalse("no entity declaration present in generated code",
