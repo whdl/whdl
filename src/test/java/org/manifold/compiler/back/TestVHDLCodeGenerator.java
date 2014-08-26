@@ -306,51 +306,40 @@ public class TestVHDLCodeGenerator {
     // For an asynchronous reset, we need to see the conditional for the
     // reset signal before the conditional for the clock edge
     // (which is rising edge here)
+    
+    List<String> processBlock = findBlock(testLines,
+        ":\\s*process",
+        "end\\s*process");
+    
     Pattern clockStmt = Pattern.compile("if.*rising_edge",
         Pattern.CASE_INSENSITIVE);
     Pattern resetStmt = Pattern.compile("if.*nReset",
         Pattern.CASE_INSENSITIVE);
-    Pattern processBegin = Pattern.compile(":\\s*process",
-        Pattern.CASE_INSENSITIVE);
-    Pattern processEnd = Pattern.compile("end\\s*process",
-        Pattern.CASE_INSENSITIVE);
-    boolean foundProcess = false;
-    boolean scanningProcess = false;
+
     int lineNumber = 0;
     // line numbers on which we have found statements
     int lineClockStmt = 0;
     int lineResetStmt = 0;
-    for (String line : testLines) {
+    for (String line : processBlock) {
       ++lineNumber;
-      if (scanningProcess) {
-        Matcher mProcessEnd = processEnd.matcher(line);
-        if (mProcessEnd.find()) {
-          scanningProcess = false;
-          break;
+      Matcher mClockStmt = clockStmt.matcher(line);
+      if (mClockStmt.find()) {
+        if (lineClockStmt != 0) {
+          fail("found multiple clock statements");
         }
-        Matcher mClockStmt = clockStmt.matcher(line);
-        if (mClockStmt.find()) {
-          if (lineClockStmt != 0) {
-            fail("found multiple clock statements");
-          }
-          lineClockStmt = lineNumber;
+        lineClockStmt = lineNumber;
+      }
+      Matcher mResetStmt = resetStmt.matcher(line);
+      if (mResetStmt.find()) {
+        if (lineResetStmt != 0) {
+          fail("found multiple reset statements");
         }
-        Matcher mResetStmt = resetStmt.matcher(line);
-        if (mResetStmt.find()) {
-          if (lineResetStmt != 0) {
-            fail("found multiple reset statements");
-          }
-          lineResetStmt = lineNumber;
-        }
-      } else {
-        Matcher mProcessBegin = processBegin.matcher(line);
-        if (mProcessBegin.find()) {
-          foundProcess = true;
-          scanningProcess = true;
-        }
+        lineResetStmt = lineNumber;
       }
     }
-    assertTrue("no process block present in generated code", foundProcess);
+    
+    assertFalse("no process block present in generated code", 
+        processBlock.isEmpty());
     assertTrue("no clock statement found", lineClockStmt != 0);
     assertTrue("no reset statement found", lineResetStmt != 0);
     // check the order in which these statements were found
@@ -382,42 +371,14 @@ public class TestVHDLCodeGenerator {
     schematic.addConnection("net2", net2);
 
     List<String> testLines = schematicToVHDL(schematic);
+    List<String> archBlock = findBlock(testLines,
+        "architecture", "end\\s*architecture");
+    int andAssigns = countMatches(archBlock, "(?i)<=.*and");
     
-    Pattern archBegin = Pattern.compile("^\\s*architecture",
-        Pattern.CASE_INSENSITIVE);
-    Pattern archEnd = Pattern.compile("end\\s*architecture",
-        Pattern.CASE_INSENSITIVE);
-    Pattern andAssign = Pattern.compile("<=.*[aA][nN][dD]");
-    
-    boolean foundArchitecture = false;
-    boolean foundGate = false;
-    boolean scanningArchitecture = false;
-    for (String line : testLines) {
-      if (scanningArchitecture) {
-        Matcher mArchEnd = archEnd.matcher(line);
-        if (mArchEnd.find()) {
-          scanningArchitecture = false;
-          break;
-        }
-        Matcher mAndAssign = andAssign.matcher(line);
-        if (mAndAssign.find()) {
-          if (foundGate) {
-            fail("multiple AND gates found");
-          } else {
-            foundGate = true;
-          }
-        }
-      } else {
-        Matcher mArchBegin = archBegin.matcher(line);
-        if (mArchBegin.find()) {
-          foundArchitecture = true;
-          scanningArchitecture = true;
-        }
-      }
-    }
-    assertTrue("no architecture block found in generated code", 
-        foundArchitecture);
-    assertTrue("no AND gate found in generated code", foundGate);
+    assertFalse("no architecture block found in generated code", 
+        archBlock.isEmpty());
+    assertEquals("expect exactly 1 AND gate in generated code",
+        1, andAssigns);
   }
   
   @Test
@@ -444,42 +405,14 @@ public class TestVHDLCodeGenerator {
     schematic.addConnection("net2", net2);
 
     List<String> testLines = schematicToVHDL(schematic);
+    List<String> archBlock = findBlock(testLines,
+        "architecture", "end\\s*architecture");
+    int orAssigns = countMatches(archBlock, "(?i)<=.*or");
     
-    Pattern archBegin = Pattern.compile("^\\s*architecture",
-        Pattern.CASE_INSENSITIVE);
-    Pattern archEnd = Pattern.compile("end\\s*architecture",
-        Pattern.CASE_INSENSITIVE);
-    Pattern orAssign = Pattern.compile("<=.*[oO][rR]");
-    
-    boolean foundArchitecture = false;
-    boolean foundGate = false;
-    boolean scanningArchitecture = false;
-    for (String line : testLines) {
-      if (scanningArchitecture) {
-        Matcher mArchEnd = archEnd.matcher(line);
-        if (mArchEnd.find()) {
-          scanningArchitecture = false;
-          break;
-        }
-        Matcher mOrAssign = orAssign.matcher(line);
-        if (mOrAssign.find()) {
-          if (foundGate) {
-            fail("multiple OR gates found");
-          } else {
-            foundGate = true;
-          }
-        }
-      } else {
-        Matcher mArchBegin = archBegin.matcher(line);
-        if (mArchBegin.find()) {
-          foundArchitecture = true;
-          scanningArchitecture = true;
-        }
-      }
-    }
-    assertTrue("no architecture block found in generated code", 
-        foundArchitecture);
-    assertTrue("no OR gate found in generated code", foundGate);
+    assertFalse("no architecture block found in generated code", 
+        archBlock.isEmpty());
+    assertEquals("expect exactly 1 OR gate in generated code",
+        1, orAssigns);
   }
   
   @Test
@@ -501,42 +434,14 @@ public class TestVHDLCodeGenerator {
     schematic.addConnection("net1", net1);
 
     List<String> testLines = schematicToVHDL(schematic);
+    List<String> archBlock = findBlock(testLines,
+        "architecture", "end\\s*architecture");
+    int notAssigns = countMatches(archBlock, "(?i)<=.*not");
     
-    Pattern archBegin = Pattern.compile("^\\s*architecture",
-        Pattern.CASE_INSENSITIVE);
-    Pattern archEnd = Pattern.compile("end\\s*architecture",
-        Pattern.CASE_INSENSITIVE);
-    Pattern notAssign = Pattern.compile("<=.*[nN][oO][tT]");
-    
-    boolean foundArchitecture = false;
-    boolean foundGate = false;
-    boolean scanningArchitecture = false;
-    for (String line : testLines) {
-      if (scanningArchitecture) {
-        Matcher mArchEnd = archEnd.matcher(line);
-        if (mArchEnd.find()) {
-          scanningArchitecture = false;
-          break;
-        }
-        Matcher mNotAssign = notAssign.matcher(line);
-        if (mNotAssign.find()) {
-          if (foundGate) {
-            fail("multiple NOT gates found");
-          } else {
-            foundGate = true;
-          }
-        }
-      } else {
-        Matcher mArchBegin = archBegin.matcher(line);
-        if (mArchBegin.find()) {
-          foundArchitecture = true;
-          scanningArchitecture = true;
-        }
-      }
-    }
-    assertTrue("no architecture block found in generated code", 
-        foundArchitecture);
-    assertTrue("no NOT gate found in generated code", foundGate);
+    assertFalse("no architecture block found in generated code", 
+        archBlock.isEmpty());
+    assertEquals("expect exactly 1 NOT gate in generated code",
+        1, notAssigns);
   }
   
   @Test
