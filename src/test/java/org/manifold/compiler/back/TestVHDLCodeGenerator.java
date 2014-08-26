@@ -1,5 +1,7 @@
 package org.manifold.compiler.back;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -57,11 +59,52 @@ public class TestVHDLCodeGenerator {
     codegen.setOutputDirectory(temppath);
     codegen.generateOutputProducts();
 
-    // open generated code
+    // open butts generated code
     String testOutputFilename = temppath + "/" + schematic.getName() + ".vhd";
     Path testOutputPath = Paths.get(testOutputFilename);
     List<String> lines = Files.readAllLines(testOutputPath);
     return lines;
+  }
+  
+  // Find all lines between, but not including, an occurrence of "begin"
+  // and an occurrence of "end" (surrounded by whitespace).
+  private List<String> findBlock(List<String> lines, String begin, String end){
+    List<String> block = new ArrayList<String>();
+    
+    Pattern beginBlock = Pattern.compile(
+        "\\s*" + begin + "\\s*", Pattern.CASE_INSENSITIVE);
+    Pattern endBlock = Pattern.compile(
+        "\\s*" + begin + "\\s*", Pattern.CASE_INSENSITIVE);
+    
+    boolean scanningBlock = true;
+    for(String line : lines){
+      if(scanningBlock){
+        Matcher mEnd = endBlock.matcher(line);
+        if(mEnd.find()){
+          break;
+        }else{
+          block.add(line);
+        }
+      }else{
+        Matcher mBegin = beginBlock.matcher(line);
+        if(mBegin.find()){
+          scanningBlock = true;
+        }
+      }
+    }
+    return block;
+  }
+  
+  private int countMatches(List<String> block, String pattern){
+    Pattern p = Pattern.compile(pattern);
+    int matchCount = 0;
+    for(String target : block){
+      Matcher mTarget = p.matcher(target);
+      if(mTarget.find()){
+        ++matchCount;
+      }
+    }
+    return matchCount;
   }
   
   @Test
@@ -129,54 +172,22 @@ public class TestVHDLCodeGenerator {
     // "out0: out std_logic"
     // somewhere between a line starting with "entity"
     // and the first following line starting with "end"
-    boolean foundEntity = false;
-    boolean scanningEntity = false;
-    boolean foundInputPort = false;
-    boolean foundOutputPort = false;
     
-    Pattern beginEntity = Pattern.compile(
-        "^\\s*entity\\s+\\\\test\\\\\\s+is");
-    Pattern endEntity = Pattern.compile(
-        "^\\s*end\\s+entity", Pattern.CASE_INSENSITIVE);
-    Pattern inputPort = Pattern.compile(
+    List<String> entityBlock = findBlock(testLines, "entity\\s+\\\\test\\\\\\s",
+        "end\\s+entity");
+    int inputPorts = countMatches(entityBlock, 
         "^\\s*in0\\s*:\\s*(?i)in\\s+std_logic");
-    Pattern outputPort = Pattern.compile(
+    int outputPorts = countMatches(entityBlock,
         "^\\s*out0\\s*:\\s*(?i)out\\s+std_logic");
-    for (String line : testLines) {
-      if (scanningEntity) {
-        Matcher mEndEntity = endEntity.matcher(line);
-        if (mEndEntity.find()) {
-          scanningEntity = false;
-          break;
-        }
-        // look for an input port or an output port
-        Matcher mInputPort = inputPort.matcher(line);
-        if (mInputPort.find()) {
-          if (foundInputPort) {
-            fail("multiple input port declarations");
-          }
-          foundInputPort = true;
-        }
-        Matcher mOutputPort = outputPort.matcher(line);
-        if (mOutputPort.find()) {
-          if (foundOutputPort) {
-            fail("multiple output port declarations");
-          }
-          foundOutputPort = true;
-        }
-      } else {
-        Matcher mBeginEntity = beginEntity.matcher(line);
-        if (mBeginEntity.find()) {
-          foundEntity = true;
-          scanningEntity = true;
-        }
-      }
-    }
+    
+    
     // collect results
-    assertTrue("no entity declaration present in generated code",
-        foundEntity);
-    assertTrue("no input port declaration found", foundInputPort);
-    assertTrue("no output port declaration found", foundOutputPort);
+    assertFalse("no entity declaration present in generated code",
+        entityBlock.isEmpty());
+    assertEquals("expect exactly one input port declaration", 
+        1, inputPorts);
+    assertEquals("expect exactly one output port declaration", 
+        1, outputPorts);
   }
   
   @Test
