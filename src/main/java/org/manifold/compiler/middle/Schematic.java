@@ -102,7 +102,8 @@ public class Schematic {
     if (userDefinedTypes.containsKey(typename)) {
       return userDefinedTypes.get(typename);
     } else {
-      throw new UndeclaredIdentifierException(typename);
+      throw new UndeclaredIdentifierException(typename, 
+          "while looking for user-defined types in schematic");
     }
   }
 
@@ -119,7 +120,8 @@ public class Schematic {
     if (portTypes.containsKey(typename)) {
       return portTypes.get(typename);
     } else {
-      throw new UndeclaredIdentifierException(typename);
+      throw new UndeclaredIdentifierException(typename,
+          "while looking for port types in schematic");
     }
   }
 
@@ -137,7 +139,8 @@ public class Schematic {
     if (nodeTypes.containsKey(typename)) {
       return nodeTypes.get(typename);
     } else {
-      throw new UndeclaredIdentifierException(typename);
+      throw new UndeclaredIdentifierException(typename,
+          "while looking for node types in schematic");
     }
   }
 
@@ -154,7 +157,8 @@ public class Schematic {
     if (connectionTypes.containsKey(typename)) {
       return connectionTypes.get(typename);
     } else {
-      throw new UndeclaredIdentifierException(typename);
+      throw new UndeclaredIdentifierException(typename,
+          "while looking for connection types in schematic");
     }
   }
 
@@ -171,7 +175,8 @@ public class Schematic {
     if (constraintTypes.containsKey(typename)) {
       return constraintTypes.get(typename);
     } else {
-      throw new UndeclaredIdentifierException(typename);
+      throw new UndeclaredIdentifierException(typename,
+          "while looking for constraint types in schematic");
     }
   }
 
@@ -189,7 +194,8 @@ public class Schematic {
     if (nodes.containsKey(instanceName)) {
       return nodes.get(instanceName);
     } else {
-      throw new UndeclaredIdentifierException(instanceName);
+      throw new UndeclaredIdentifierException(instanceName,
+          "while looking for nodes in schematic");
     }
   }
 
@@ -213,7 +219,8 @@ public class Schematic {
     if (connections.containsKey(instanceName)) {
       return connections.get(instanceName);
     } else {
-      throw new UndeclaredIdentifierException(instanceName);
+      throw new UndeclaredIdentifierException(instanceName,
+          "while looking for connections in schematic");
     }
   }
 
@@ -238,7 +245,8 @@ public class Schematic {
     if (constraints.containsKey(instanceName)) {
       return constraints.get(instanceName);
     } else {
-      throw new UndeclaredIdentifierException(instanceName);
+      throw new UndeclaredIdentifierException(instanceName,
+          "while looking for constraints in schematic");
     }
   }
 
