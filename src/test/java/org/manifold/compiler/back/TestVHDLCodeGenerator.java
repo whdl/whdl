@@ -21,6 +21,7 @@ import org.apache.log4j.ConsoleAppender;
 import org.apache.log4j.Level;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.PatternLayout;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
@@ -43,6 +44,11 @@ public class TestVHDLCodeGenerator {
         new ConsoleAppender(layout, ConsoleAppender.SYSTEM_ERR));
   }
 
+  @AfterClass
+  public static void afterClass() {
+    LogManager.getRootLogger().removeAllAppenders();
+  }
+  
   /*
    * This test class does not provide verification or "correctness" testing for
    * output products of the code generator. Its real function is to perform very
